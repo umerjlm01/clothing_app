@@ -1,3 +1,4 @@
+import 'package:clothing_app/reusable_widgets/snack_bar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:clothing_app/reusable_widgets/app_bar.dart';
 import 'package:clothing_app/reusable_widgets/text_form_field.dart';
@@ -114,15 +115,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                 onPressed: () async {
                                  final success = _bloc.register();
                                   final navigator = Navigator.of(context);
-                                  final messenger = ScaffoldMessenger.of(context);
+                                  final messenger = SnackBarHelper.showSnackBar(context, "Registration Failed", isError: true);
                                   if (await success) {
 
                                 navigator.pushAndRemoveUntil(
                                     MaterialPageRoute(builder: (_) => const LoginScreen()), (route) => false);}
                                   else{
-                                    messenger.showSnackBar(
-                                      const SnackBar(content: Text('Registration failed')),
-                                    );
+                                    return messenger;
+
                                   }
                                   },
                                 child: Text(ConstantStrings.register),

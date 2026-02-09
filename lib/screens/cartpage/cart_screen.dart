@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:clothing_app/reusable_widgets/snack_bar_helper.dart';
 import 'package:clothing_app/screens/cartpage/cart_bloc.dart';
 import 'package:clothing_app/screens/cartpage/cart_models.dart';
 import 'package:flutter/material.dart';
@@ -87,11 +88,8 @@ class _CartScreenState extends State<CartScreen> {
                       IconButton(
                         icon: const Icon(Icons.delete, color: Colors.red),
                         onPressed: () {_bloc.removeFromCart(item.id);
-                          final messenger = ScaffoldMessenger.of(context);
-                          messenger.showSnackBar(
-                            SnackBar(
-                              content: Text('${item.product.title} removed from cart'),
-                            ));
+                          final messenger = SnackBarHelper.showSnackBar(context, '${item.product.title} removed from cart');
+                          return messenger;
                           },
                       ),
                     ],

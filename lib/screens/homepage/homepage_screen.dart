@@ -151,10 +151,6 @@ class _HomepageScreenState extends State<HomepageScreen> {
                             ),
                             const Spacer(),
                             AppIconButton(onPressed: () {_bloc.toggleAddToCart(product);
-                              final messenger = ScaffoldMessenger.of(context);
-                              messenger.showSnackBar(
-                                SnackBar(
-                                  content: Text('${product.title} added to cart'),));
                               }, icon: Icon(Icons.add_shopping_cart))
                           ],
                         ),

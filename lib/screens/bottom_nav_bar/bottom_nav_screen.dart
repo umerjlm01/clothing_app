@@ -16,6 +16,9 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
   void initState() {
     if (mounted) {
       _bloc = BottomNavBloc(context, this);
+
+        _bloc.initializeFCM();
+
       super.initState();
     }
   }

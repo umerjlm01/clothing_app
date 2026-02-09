@@ -2,17 +2,12 @@ import { createClient } from '@supabase/supabase-js'
 import { JWT } from 'google-auth-library'
 import serviceAccount from '../service-account.json' with { type: 'json' }
 
-interface Notification {
-  id: string
-  user_id: string
-  body: string
-}
-
-interface WebhookPayload {
-  type: 'INSERT'
-  table: string
-  record: Notification
-  schema: 'public'
+interface PushRequest {
+token?: string // optional user JWT
+receiver_id: string
+title: string
+body: string
+conversation_id?: string
 }
 
 const supabaseUrl = Deno.env.get('MY_SUPABASE_URL')!
@@ -21,28 +16,53 @@ const supabaseKey = Deno.env.get('MY_SUPABASE_KEY')!
 const supabase = createClient(supabaseUrl, supabaseKey)
 
 Deno.serve(async (req) => {
-  const payload: WebhookPayload = await req.json()
-
-  if (payload.type !== 'INSERT' || payload.table !== 'notifications') {
-    return new Response('Ignored', { status: 200 })
+  if (req.method !== 'POST') {
+    return new Response('Method not allowed', { status: 405 })
   }
 
-  const { data } = await supabase
+  let payload: PushRequest
+
+  try {
+    payload = await req.json()
+  } catch {
+    return new Response('Invalid JSON', { status: 400 })
+  }
+
+  // 🔐 Optional: verify user token if provided
+  if (!payload.token) {
+    return new Response('Missing auth token', { status: 401 })
+  }
+
+  const { data: user, error: userError } = await supabase.auth.getUser(payload.token)
+  if (userError || !user) {
+    return new Response('Unauthorized', { status: 401 })
+  }
+
+  const { receiver_id, title, body, conversation_id } = payload
+
+  if (!receiver_id || !title || !body) {
+    return new Response('Missing fields', { status: 400 })
+  }
+
+  // 🔍 Get receiver FCM token
+  const { data, error } = await supabase
     .from('profiles')
     .select('fcm_token')
-    .eq('id', payload.record.user_id)
+    .eq('id', receiver_id)
     .single()
 
-  if (!data?.fcm_token) {
-    console.log('No FCM token for user:', payload.record.user_id)
-    return new Response('No token', { status: 200 })
+  if (error || !data?.fcm_token) {
+    console.log('No FCM token for user:', receiver_id)
+    return new Response('No FCM token', { status: 200 })
   }
 
+  // 🔐 Get Firebase access token
   const accessToken = await getAccessToken({
     clientEmail: serviceAccount.client_email,
     privateKey: serviceAccount.private_key,
   })
 
+  // 📲 Send DATA-ONLY FCM
   const res = await fetch(
     `https://fcm.googleapis.com/v1/projects/${serviceAccount.project_id}/messages:send`,
     {
@@ -54,26 +74,29 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         message: {
           token: data.fcm_token,
-          notification: {
-            title: 'New message',
-            body: payload.record.body,
+          data: {
+            title,
+            body,
+            conversation_id: conversation_id ?? '',
+            click_action: 'FLUTTER_NOTIFICATION_CLICK',
           },
+          android: { priority: 'high' },
         },
       }),
     }
-  )
+)
 
-  const resData = await res.json()
+const resData = await res.json()
 
-  if (!res.ok) {
+if (!res.ok) {
     console.error('FCM error:', resData)
+    return new Response(JSON.stringify(resData), { status: 500 })
   }
 
-  return new Response(JSON.stringify(resData), {
+  return new Response(JSON.stringify({ success: true }), {
     headers: { 'Content-Type': 'application/json' },
   })
 })
-
 
 const getAccessToken = ({
   clientEmail,
@@ -88,6 +111,7 @@ const getAccessToken = ({
       key: privateKey,
       scopes: ['https://www.googleapis.com/auth/firebase.messaging'],
     })
+
     jwtClient.authorize((err, tokens) => {
       if (err) {
         reject(err)

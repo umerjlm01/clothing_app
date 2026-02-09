@@ -1,3 +1,4 @@
+import 'package:clothing_app/reusable_widgets/snack_bar_helper.dart';
 import 'package:clothing_app/reusable_widgets/text_form_field.dart';
 import 'package:clothing_app/screens/profilepage/messages_models.dart';
 import 'package:clothing_app/screens/profilepage/profile_models.dart';
@@ -152,11 +153,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                       return GestureDetector(
                         onTap: () {_bloc.createConversation(user.id);
-                          final messenger = ScaffoldMessenger.of(context);
-                          messenger.showSnackBar(
-                            SnackBar(
-                              content: Text('Conversation opened with ${user.name}'),
-                            ));
+                          SnackBarHelper.showSnackBar(context, "Chat with ${user.name}", isError: false);
+
                           },
                         child: Container(
                           margin: EdgeInsets.symmetric(horizontal: deviceWidth / 70, vertical: deviceHeight / 90),

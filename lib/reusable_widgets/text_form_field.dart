@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 
 class AppTextFormField extends StatelessWidget {
-  const AppTextFormField({super.key, required this.label, required this.controller, this.isPassword = false, required this.validator});
+  const AppTextFormField({super.key, required this.label, required this.controller, this.isPassword = false,required this.validator});
   final String label;
   final TextEditingController controller;
   final bool isPassword;
   final String? Function(String?)? validator;
-
 
   @override
   Widget build(BuildContext context) {
@@ -16,6 +15,7 @@ class AppTextFormField extends StatelessWidget {
       validator: validator,
       decoration: InputDecoration(
         labelText: label,
+    ),
 
-    ));}
+    );}
 }

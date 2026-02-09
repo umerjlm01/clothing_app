@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 import 'package:clothing_app/bloc/bloc.dart';
+import 'package:clothing_app/local_notifications/push_notification.dart';
 import 'package:clothing_app/screens/profilepage/messages_models.dart';
 import 'package:clothing_app/screens/profilepage/profile_models.dart';
 import 'package:clothing_app/utils/constant_strings.dart';
@@ -66,9 +67,14 @@ class ProfileBloc extends Bloc {
 
   Future<void> logout() async {
     try {
+      final userId = supabase.auth.currentUser?.id;
+      if (userId != null){
+        await supabase.from(ConstantStrings.profileTable).update({
+          'fcm_token': null,
+        }).eq('id', userId);
+      }
       await supabase.auth.signOut();
       await _storage.delete('accessToken');
-
       messageController.clear();
     } catch (e) {
       log('Logout failed: $e');
@@ -148,10 +154,15 @@ class ProfileBloc extends Bloc {
         'last_message': text,
         'last_message_at': DateTime.now().toIso8601String(),
       }).eq('id', conversationId!);
-    log('Message sent: $text');
+
+      final receiverId = conversationId!.split('_')[1] == currentUserId ? conversationId!.split('_')[0] : conversationId!.split('_')[1];
+
+      await PushNotificationService.instance.trigger(receiverId: receiverId, title: "New Message", body: text);
+      log('Message sent: $text');
       messageController.clear();
-    } catch (e) {
-      log('Error sending message: $e');
+
+    } catch (e, t) {
+      log('Error sending message: $e \n $t');
     }
   }
 
@@ -159,7 +170,6 @@ class ProfileBloc extends Bloc {
 
   @override
   void dispose() {
-
     _messageStream.close();
     _messageSubscription?.cancel();
     messageController.dispose();

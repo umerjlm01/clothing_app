@@ -20,6 +20,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     if (mounted) {
+
       super.initState();
 
       _controller = AnimationController(

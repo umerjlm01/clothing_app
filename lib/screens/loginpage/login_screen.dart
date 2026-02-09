@@ -100,6 +100,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               controller: _bloc.passwordController,
                               isPassword: true,
                               validator: _bloc.validatePassword,
+
                             ),
                             SizedBox(height: deviceHeight / 40),
                             SizedBox(
@@ -108,16 +109,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                 onPressed: () async {
                                   final success = _bloc.login();
                                   final navigator = Navigator.of(context);
-                                  final messenger = ScaffoldMessenger.of(context);
                                   if (await success) {
                                     navigator.pushAndRemoveUntil(
                                       MaterialPageRoute(builder: (_) => const BottomNavScreen()),
                                           (route) => false,
                                     );
                                   } else {
-                                    messenger.showSnackBar(
-                                      const SnackBar(content: Text('Login failed')),
-                                    );
+                                    return;
                                   }
                                 },
                                 name: ConstantStrings.login,
