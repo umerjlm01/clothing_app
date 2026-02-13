@@ -57,7 +57,6 @@ class CartBloc extends Bloc {
     }
   }
 
-  /// REMOVE ITEM (DO NOT touch stream here)
   Future<void> removeFromCart(int cartId) async {
     await Supabase.instance.client
         .from(ConstantStrings.cartTable)

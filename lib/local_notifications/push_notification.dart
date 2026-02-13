@@ -16,10 +16,13 @@ class PushNotificationService {
     String? conversationId,
   }) async {
     try {
+
+      final token = await supabase.from('profiles').select('fcm_token').eq('id', receiverId).maybeSingle();
+      if (token == null) {
       final response = await supabase.functions.invoke(
         'push_notifications',
         body: {
-          'token': supabase.auth.currentSession?.accessToken, // optional internal auth
+          'token': supabase.auth.currentSession?.accessToken,
           'receiver_id': receiverId,
           'title': title,
           'body': body,
@@ -27,9 +30,25 @@ class PushNotificationService {
         },
       );
 
-      log('PushNotification sent successfully: $response');
+      log('PushNotification sent successfully: ${response.status}');
+    }
+    else{
+        log('No token found for $receiverId');
+
+      }
+    } on FunctionException catch (e, t) {
+      log('PushNotificationService trigger error: ${e.details} \n $t');
+
+      if (e.details is Map<String, dynamic>) {
+        final details = e.details as Map<String, dynamic>;
+
+        if (details['error']?['errorCode'] == 'UNREGISTERED') {
+          log('FCM token invalid, removed from DB: $receiverId');
+        }
+      }
     } catch (e, t) {
-      log('PushNotificationService trigger catch: $e \n$t');
+      log('PushNotificationService unexpected error: $e \n$t');
     }
   }
+
 }

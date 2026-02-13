@@ -19,24 +19,23 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   void initState() {
-    if (mounted) {
+    super.initState();
 
-      super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
 
-      _controller = AnimationController(
-        vsync: this,
-        duration: const Duration(milliseconds: 1200),
-      );
+    _fadeAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeIn,
+    );
 
-      _fadeAnimation = CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeIn,
-      );
+    _controller.forward();
 
-      _controller.forward();
-      _splashFunc();
-    }
+    _splashFunc();
   }
+
   Future<void> _splashFunc() async {
     await Future.delayed(const Duration(seconds: 2));
 
@@ -45,20 +44,37 @@ class _SplashScreenState extends State<SplashScreen>
     final session = Supabase.instance.client.auth.currentSession;
 
     if (session != null) {
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (_) => const BottomNavScreen()),
-        (route) => false,
-      );
+      //refresh session to ensure JWT is valid
+      await Supabase.instance.client.auth.refreshSession();
+
+      // If refresh failed, go to login
+      if (!mounted) return;
+      if (Supabase.instance.client.auth.currentSession == null) {
+        _navigateToLogin();
+        return;
+      }
+
+      _navigateToHome();
     } else {
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-        (route) => false,
-      );
+      _navigateToLogin();
     }
   }
 
+  void _navigateToHome() {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const BottomNavScreen()),
+          (route) => false,
+    );
+  }
+
+  void _navigateToLogin() {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+          (route) => false,
+    );
+  }
 
   @override
   void dispose() {

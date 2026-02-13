@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
 import 'package:clothing_app/bloc/bloc.dart';
-import 'package:clothing_app/local_notifications/push_notification.dart';
 import 'package:clothing_app/utils/constant_strings.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:rxdart/rxdart.dart';
@@ -43,10 +42,7 @@ class HomepageBloc extends Bloc {
         { 'user_id': client.auth.currentUser!.id, 'product_id': product.id, 'quantity': 1},
         onConflict: 'user_id,product_id',
       );
-      final receiverId = (product.id).toString();
-
-      PushNotificationService.instance.trigger(receiverId: receiverId, title: "Added To Cart", body: "Your product has been added to your cart");
-    }
+       }
 
 
     catch (e,t){
