@@ -6,8 +6,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../chat_list_page/chat_list_screen.dart';
 import '../cartpage/cart_screen.dart';
+import '../chat_list_page/chat_list_screen.dart';
 import '../homepage/homepage_screen.dart';
 import '../profilepage/profile_screen.dart';
 

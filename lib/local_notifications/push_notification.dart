@@ -17,8 +17,7 @@ class PushNotificationService {
   }) async {
     try {
 
-      final token = await supabase.from('profiles').select('fcm_token').eq('id', receiverId).maybeSingle();
-      if (token == null) {
+
       final response = await supabase.functions.invoke(
         'push_notifications',
         body: {
@@ -31,11 +30,6 @@ class PushNotificationService {
       );
 
       log('PushNotification sent successfully: ${response.status}');
-    }
-    else{
-        log('No token found for $receiverId');
-
-      }
     } on FunctionException catch (e, t) {
       log('PushNotificationService trigger error: ${e.details} \n $t');
 

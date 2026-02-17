@@ -1,7 +1,7 @@
-import 'package:clothing_app/chat_list_page/chat_list_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:clothing_app/screens/bottom_nav_bar/bottom_nav_bloc.dart';
 import '../../reusable_widgets/bottom_nav_bar.dart';
+import '../chat_list_page/chat_list_bloc.dart';
 
 class BottomNavScreen extends StatefulWidget {
   const BottomNavScreen({super.key});

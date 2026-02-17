@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:developer';
 
-import 'package:clothing_app/chat_list_page/chat_list_models.dart';
-import 'package:clothing_app/chat_list_page/profile_models.dart';
+import 'package:clothing_app/screens/chat_list_page/chat_list_models.dart';
+import 'package:clothing_app/screens/chat_list_page/profile_models.dart';
 import 'package:clothing_app/utils/constant_strings.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:rxdart/rxdart.dart';
@@ -167,7 +167,7 @@ class ChatListBloc extends Bloc {
       final receiversId = ids[1];
 
       final conversationId = '${senderId}_$receiversId';
-
+      if(currentUserId != receiverId){
       final existing = await supabase
           .from(ConstantStrings.conversationsTable)
           .select('id')
@@ -184,7 +184,7 @@ class ChatListBloc extends Bloc {
         'last_message_at': null,
         'created_at': DateTime.now().toIso8601String(),
       }).single().maybeSingle();
-    } catch (e, t) {
+    }} catch (e, t) {
       log('createConversation error: $e \n $t');
     }
   }

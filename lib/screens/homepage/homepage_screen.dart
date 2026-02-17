@@ -87,7 +87,7 @@ class _HomepageScreenState extends State<HomepageScreen> {
                           top: Radius.circular(deviceHeight * 0.02),
                         ),
                         child: CachedNetworkImage(
-                          height: deviceHeight * 0.19,
+                          height: deviceHeight * 0.12,
                           width: double.infinity,
                           imageUrl: product.imageUrl,
                           fit: BoxFit.cover,

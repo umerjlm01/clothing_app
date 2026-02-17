@@ -1,11 +1,10 @@
-import 'package:clothing_app/chat_list_page/chat_list_bloc.dart';
-import 'package:clothing_app/chat_list_page/chat_list_models.dart';
+import 'package:clothing_app/screens/chat_list_page/chat_list_bloc.dart';
+import 'package:clothing_app/screens/chat_list_page/chat_list_models.dart';
 import 'package:clothing_app/screens/chatpage/chat_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
-import '../reusable_widgets/app_bar.dart';
-import '../utils/constant_variables.dart';
+import '../../reusable_widgets/app_bar.dart';
+import '../../utils/constant_variables.dart';
 
 
 
