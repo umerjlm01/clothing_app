@@ -100,6 +100,41 @@ class _ChatScreenState extends State<ChatScreen> {
         ));
         break;
 
+      case 'location':
+
+        messageContent = GestureDetector(
+          onTap: (){
+             _bloc.openMaps(msg);
+          },
+          child: Container(
+            constraints: BoxConstraints(
+              maxWidth: deviceWidth * 0.55,
+              minWidth: deviceWidth * 0.3),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            decoration: BoxDecoration(
+              color: isMe ? Colors.blue.shade400 : Colors.grey.shade200,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.location_on,
+                  size: 36,
+                  color: isMe ? Colors.white : Colors.blue),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    _getDocumentName(msg),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+
+                )
+                ) ])
+            )
+
+          );
+
+
       case 'document':
 
         messageContent =  GestureDetector(

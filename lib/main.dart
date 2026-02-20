@@ -70,8 +70,7 @@ import 'local_notifications/navigation_helper.dart';
           return child!;
 
         },
-
-        home: SplashScreen()
+          home: SplashScreen(),
       );
     }
   }

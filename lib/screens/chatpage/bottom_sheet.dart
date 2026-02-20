@@ -116,15 +116,16 @@ class _CustomBottomSheetState extends State<CustomBottomSheet> {
               }),
               buildItem(icon: Icons.camera_alt, label: "Camera", iconColor: Colors.pink, onTap: () { _bloc.imageHandler.pickImageFromCamera();
               Navigator.pop(context);}),
-              buildItem(icon: Icons.location_on, label: "Location", iconColor: Colors.green, onTap: () {}),
+              buildItem(icon: Icons.location_on, label: "Location", iconColor: Colors.green, onTap: () {_bloc.mapsHandler.getCurrentLocation();
+              Navigator.pop(context);}),
               buildItem(icon: Icons.person, label: "Contact", iconColor: Colors.teal, onTap: (){_bloc.contactHandler.pickContact();
               Navigator.pop(context);}),
               buildItem(icon: Icons.insert_drive_file, label: "Document", iconColor: Colors.deepPurple, onTap: (){_bloc.documentHandler.pickDocument();
               Navigator.pop(context);}),
               buildItem(icon: Icons.headset, label: "Audio", iconColor: Colors.orange, onTap: (){_bloc.audioHandler.pickAudio();
               Navigator.pop(context);}),
-              buildItem(icon: Icons.poll, label: "Poll", iconColor: Colors.amber, onTap: () {}),
-              buildItem(icon: Icons.event, label: "Event", iconColor: Colors.pinkAccent, onTap: () {}),
+              // buildItem(icon: Icons.poll, label: "Poll", iconColor: Colors.amber, onTap: () {}),
+              // buildItem(icon: Icons.event, label: "Event", iconColor: Colors.pinkAccent, onTap: () {}),
             ],
           ),
         ],

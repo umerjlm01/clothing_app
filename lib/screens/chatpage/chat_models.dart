@@ -7,7 +7,10 @@ class ChatMessage {
   final String? caption; // for image/document
   final String? filename; // original file name
   final String? contactName;
+  final double? longitude;
+  final double? latitude;
   final String? contactPhone;
+  final String? location;
   final DateTime createdAt;
 
   ChatMessage({
@@ -19,7 +22,10 @@ class ChatMessage {
     this.caption,
     this.filename,
     this.contactName,
+    this.longitude,
+    this.latitude,
     this.contactPhone,
+    this.location,
     required this.createdAt,
   });
 
@@ -33,6 +39,8 @@ class ChatMessage {
     String? filename;
     String? contactName;
     String? contactPhone;
+    double? latitude;
+    double? longitude;
 
     switch (type) {
       case 'text':
@@ -47,12 +55,6 @@ class ChatMessage {
         break;
 
       case 'document':
-        url = payload['url']?.toString();
-        caption = payload['caption']?.toString();
-        filename = payload['filename']?.toString();
-        content = caption ?? filename;
-        break;
-
       case 'audio':
         url = payload['url']?.toString();
         caption = payload['caption']?.toString();
@@ -60,6 +62,24 @@ class ChatMessage {
         content = caption ?? filename;
         break;
 
+      case 'location':
+        final latValue = payload['latitude'];
+        final longValue = payload['longitude'];
+
+        if (latValue is double) {
+          latitude = latValue;
+        } else if (latValue is String) {
+          latitude = double.tryParse(latValue);
+        }
+
+        if (longValue is double) {
+          longitude = longValue;
+        } else if (longValue is String) {
+          longitude = double.tryParse(longValue);
+        }
+
+        content = 'Shared Location';
+        break;
 
       case 'contact':
         contactName = payload['name']?.toString();
@@ -80,6 +100,8 @@ class ChatMessage {
       filename: filename,
       contactName: contactName,
       contactPhone: contactPhone,
+      latitude: latitude,
+      longitude: longitude,
       createdAt: DateTime.parse(map['created_at']),
     );
   }

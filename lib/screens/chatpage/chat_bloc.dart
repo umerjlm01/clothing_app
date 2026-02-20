@@ -6,6 +6,7 @@ import 'package:clothing_app/local_notifications/push_notification.dart';
 import 'package:clothing_app/screens/chatpage/chat_models.dart';
 import 'package:clothing_app/utils/constant_strings.dart';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -13,6 +14,8 @@ import 'handlers/audio_handler/audio_handler.dart';
 import 'handlers/contact_handlers/contact_handler.dart';
 import 'handlers/document_handler/document_handler.dart';
 import 'handlers/image_handlers/image_handler.dart';
+import 'handlers/maps_handler/maps_handler.dart';
+import 'handlers/maps_handler/maps_screen.dart';
 
 class ChatScreenBloc extends Bloc {
   final State<StatefulWidget> state;
@@ -43,6 +46,11 @@ class ChatScreenBloc extends Bloc {
         sendMessage(null); // auto-send contact
         contactHandler.clear();
     }});
+
+    mapsHandler.positionStream.listen((position) {
+      sendMessage(null, LatLng(position.latitude, position.longitude));
+
+    });
   }
 
   // ---------------- Streams ----------------
@@ -74,6 +82,8 @@ class ChatScreenBloc extends Bloc {
   DocumentHandler(supabase: supabase);
   late final ContactHandler contactHandler = ContactHandler();
   late final AudioHandler audioHandler = AudioHandler(supabase: supabase);
+  late final MapsHandler mapsHandler = MapsHandler();
+
 
   // ---------------- Initialization ----------------
   void initStream() async {
@@ -104,13 +114,13 @@ class ChatScreenBloc extends Bloc {
   }
 
   // ---------------- Message Sending ----------------
-  Future<void> sendMessage([File? file]) async {
+  Future<void> sendMessage([File? file, LatLng? location]) async {
     final text = _messageController.text.trim();
 
     final selectedContact = contactHandler.contactNotifier.value;
     File? sendingFile = file ?? documentHandler.fileNotifier.value ?? audioHandler.fileNotifier.value;
 
-    if (text.isEmpty && sendingFile == null && selectedContact == null) return;
+    if (text.isEmpty && sendingFile == null && selectedContact == null && location == null) return;
 
     try {
       Map<String, dynamic> messagePayload;
@@ -124,6 +134,13 @@ class ChatScreenBloc extends Bloc {
               .toString()
               .replaceAll('[', '')
               .replaceAll(']', '')
+        };
+      }
+      else if (location != null) {
+        messagePayload = {
+          'type': 'location',
+          'latitude': location.latitude,
+          'longitude': location.longitude,
         };
       }
       // 2️⃣ File/Image/Document/Audio
@@ -290,6 +307,15 @@ class ChatScreenBloc extends Bloc {
     } catch (e, t) {
       log('ChatBloc markMessagesAsRead error: $e\n$t');
     }
+  }
+
+  void openMaps(ChatMessage msg){
+    final lat = msg.latitude;
+    final long = msg.longitude;
+    if (lat != null && long != null) {
+      Navigator.push(context, MaterialPageRoute(builder: (context) => MapsScreen(bloc: this, destination: LatLng(lat, long),)));
+    }
+
   }
 
 

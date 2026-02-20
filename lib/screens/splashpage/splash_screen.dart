@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:clothing_app/screens/bottom_nav_bar/bottom_nav_screen.dart';
+import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../utils/secure_storage.dart';
 import '../loginpage/login_screen.dart';
@@ -63,7 +63,7 @@ class _SplashScreenState extends State<SplashScreen>
   void _navigateToHome() {
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (_) => const BottomNavScreen()),
+      MaterialPageRoute(builder: (_) => BottomNavScreen()),
           (route) => false,
     );
   }
@@ -71,7 +71,7 @@ class _SplashScreenState extends State<SplashScreen>
   void _navigateToLogin() {
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      MaterialPageRoute(builder: (_) => LoginScreen()),
           (route) => false,
     );
   }
