@@ -10,6 +10,7 @@ import 'chat_bloc.dart';
 import 'chat_models.dart';
 import 'handlers/audio_handler/audio_handler.dart';
 
+
 class ChatScreen extends StatefulWidget {
   final String conversationId;
   final String currentUserId;
@@ -124,7 +125,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    _getDocumentName(msg),
+                    msg.isLive ? "Live Location" : "Current Location",
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
 
@@ -223,6 +224,31 @@ class _ChatScreenState extends State<ChatScreen> {
         );
         break;
 
+      case 'call':
+        final displayText = msg.content?.isNotEmpty == true ? msg.content : "Call info unavailable";
+
+        messageContent = Container(
+          constraints: BoxConstraints(
+            maxWidth: deviceWidth * 0.55,
+            minWidth: deviceWidth * 0.3,
+            minHeight: 50,
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: isMe ? Colors.blue.shade400 : Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            displayText!,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: deviceHeight / 70,
+              color: isMe ? Colors.white : Colors.black87,
+            ),
+          ),
+        );
+        break;
+
       case 'contact':
         messageContent = Container(
           constraints: BoxConstraints(
@@ -312,19 +338,78 @@ class _ChatScreenState extends State<ChatScreen> {
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
         backgroundColor: Colors.white,
-        elevation: 0.5,
-        centerTitle: true,
-        title: Text(
-          widget.receiverName,
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 18,
-            color: Colors.black87,
-          ),
+        elevation: 0,
+        centerTitle: false,
+        titleSpacing: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, size: 20, color: Colors.black87),
+          onPressed: () => Navigator.pop(context),
         ),
-        iconTheme: const IconThemeData(color: Colors.black87),
-      ),
-      resizeToAvoidBottomInset: true,
+        title: Row(
+          children: [
+            CircleAvatar(
+              radius: 18,
+              backgroundColor: Colors.blue.shade50,
+              child: Text(
+                widget.receiverName.isNotEmpty ? widget.receiverName[0].toUpperCase() : '?',
+                style: const TextStyle(
+                    fontSize: 14, fontWeight: FontWeight.bold, color: Colors.blue),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center, // center vertically
+                children: [
+                  Text(
+                    widget.receiverName,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const Text(
+                    "Online",
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.green,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          Center(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: AppIconButton(onPressed: (){
+                _bloc.makeCall(widget.receiverId, widget.receiverName, isVideo: false);
+              }, icon: Icon(Icons.phone, size: 30, color: Colors.blue,))
+            ),
+          ),
+          const SizedBox(width: 10),
+          Center(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: AppIconButton(onPressed: (){
+                _bloc.makeCall(widget.receiverId, widget.receiverName, isVideo: true);
+              }, icon: Icon(Icons.video_call, size: 30,color: Colors.blue,))
+            ),
+          ),
+          const SizedBox(width: 8),
+        ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.0),
+          child: Divider(height: 1, thickness: 1, color: Colors.grey.shade100),
+        ),
+      ),      resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: Column(
           children: [
@@ -373,102 +458,100 @@ class _ChatScreenState extends State<ChatScreen> {
                 },
               ),
             ),
-
-            /// Input Area
             /// Input Area
             Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ValueListenableBuilder<File?>(
-                  valueListenable: _bloc.imageHandler.fileNotifier,
-                  builder: (context, selectedFile, _) {
-                    return Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: deviceWidth / 25,
-                        vertical: deviceHeight / 90,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                      child: Row(
-                        children: [
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ValueListenableBuilder<File?>(
+                    valueListenable: _bloc.imageHandler.fileNotifier,
+                    builder: (context, selectedFile, _) {
+                      return Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: deviceWidth / 25,
+                          vertical: deviceHeight / 90,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                        child: Row(
+                          children: [
 
-                          /// IMAGE PREVIEW ONLY
-                          if (selectedFile != null)
-                            Stack(
-                              clipBehavior: Clip.none,
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Image.file(
-                                    selectedFile,
-                                    width: deviceWidth * 0.25,
-                                    height: deviceHeight * 0.15,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-
-                                /// Close button
-                                Positioned(
-                                  top: -6,
-                                  right: -6,
-                                  child: GestureDetector(
-                                    onTap: () => _bloc.imageHandler.fileNotifier.value = null,
-                                    child: const CircleAvatar(
-                                      radius: 12,
-                                      backgroundColor: Colors.red,
-                                      child: Icon(Icons.close,
-                                          size: 16, color: Colors.white),
+                            /// IMAGE PREVIEW ONLY
+                            if (selectedFile != null)
+                              Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Image.file(
+                                      selectedFile,
+                                      width: deviceWidth * 0.25,
+                                      height: deviceHeight * 0.15,
+                                      fit: BoxFit.cover,
                                     ),
                                   ),
+
+                                  /// Close button
+                                  Positioned(
+                                    top: -6,
+                                    right: -6,
+                                    child: GestureDetector(
+                                      onTap: () => _bloc.imageHandler.fileNotifier.value = null,
+                                      child: const CircleAvatar(
+                                        radius: 12,
+                                        backgroundColor: Colors.red,
+                                        child: Icon(Icons.close,
+                                            size: 16, color: Colors.white),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                            if (selectedFile != null)
+                              SizedBox(width: deviceWidth / 50),
+
+                            /// TextField
+                            Expanded(
+                              child: TextField(
+                                controller: _bloc.messageController,
+                                textInputAction: TextInputAction.send,
+                                onSubmitted: (_) =>
+                                    _bloc.sendMessage(_bloc.imageHandler.fileNotifier.value),
+                                decoration: const InputDecoration(
+                                  hintText: 'Type a message...',
+                                  border: InputBorder.none,
                                 ),
-                              ],
-                            ),
-
-                          if (selectedFile != null)
-                            SizedBox(width: deviceWidth / 50),
-
-                          /// TextField
-                          Expanded(
-                            child: TextField(
-                              controller: _bloc.messageController,
-                              textInputAction: TextInputAction.send,
-                              onSubmitted: (_) =>
-                                  _bloc.sendMessage(_bloc.imageHandler.fileNotifier.value),
-                              decoration: const InputDecoration(
-                                hintText: 'Type a message...',
-                                border: InputBorder.none,
                               ),
                             ),
-                          ),
 
-                          SizedBox(width: deviceWidth / 50),
+                            SizedBox(width: deviceWidth / 50),
 
-                          /// ATTACHMENT BUTTON
-                          IconButton(
-                            icon: const Icon(Icons.attach_file, color: Colors.black),
-                            onPressed: () => showModalBottomSheet(
-                              context: context,
-                              builder: (context) =>
-                                  CustomBottomSheet(bloc: _bloc),
+                            /// ATTACHMENT BUTTON
+                            IconButton(
+                              icon: const Icon(Icons.attach_file, color: Colors.black),
+                              onPressed: () => showModalBottomSheet(
+                                context: context,
+                                builder: (context) =>
+                                    CustomBottomSheet(bloc: _bloc),
 
+                              ),
                             ),
-                          ),
 
-                          /// SEND BUTTON
-                          IconButton(
-                            icon: const Icon(Icons.send, color: Colors.blue),
-                            onPressed: () =>
-                                _bloc.sendMessage(_bloc.imageHandler.fileNotifier.value),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
+                            /// SEND BUTTON
+                            IconButton(
+                              icon: const Icon(Icons.send, color: Colors.blue),
+                              onPressed: () =>
+                                  _bloc.sendMessage(_bloc.imageHandler.fileNotifier.value),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
 
           ],
         ),

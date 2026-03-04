@@ -1,3 +1,4 @@
+import 'package:clothing_app/screens/cartpage/cart_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:clothing_app/screens/bottom_nav_bar/bottom_nav_bloc.dart';
 import '../../reusable_widgets/bottom_nav_bar.dart';
@@ -19,8 +20,11 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
     super.initState();
     _bloc = BottomNavBloc(context, this);
     _bloc.initializeFCM();
+    initPush();
 
-
+  }
+  void initPush()async{
+    await _bloc.initZego();
   }
 
   @override
@@ -28,8 +32,8 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
     return StreamBuilder<int>(
       stream: _bloc.currentIndexStream,
       initialData: 0,
-      builder: (context, snapshot) {
-        final index = snapshot.data ?? 0;
+      builder: (context, indexSnapshot) {
+        final index = indexSnapshot.data ?? 0;
 
         return StreamBuilder<int>(
           stream: ChatListBloc.instance?.totalUnreadStream,
@@ -37,16 +41,25 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
           builder: (context, unreadSnapshot) {
             final totalUnread = unreadSnapshot.data ?? 0;
 
-            return Scaffold(
-              body: IndexedStack(
-                index: index,
-                children: _bloc.screens,
-              ),
-              bottomNavigationBar: BottomNavBar(
-                index: index,
-                onTap: (i) => _bloc.updateIndex(i),
-                chatUnreadCount: totalUnread,
-              ),
+            return StreamBuilder<int>(
+              stream: CartBloc.instance?.totalQuantityStream,
+              initialData: 0,
+              builder: (context, cartSnapshot) {
+                final totalQuantity = cartSnapshot.data ?? 0;
+
+                return Scaffold(
+                  body: IndexedStack(
+                    index: index,
+                    children: _bloc.screens,
+                  ),
+                  bottomNavigationBar: BottomNavBar(
+                    index: index,
+                    onTap: (i) => _bloc.updateIndex(i),
+                    chatUnreadCount: totalUnread,
+                    cartCount: totalQuantity, // Pass totalQuantity to your BottomNavBar
+                  ),
+                );
+              },
             );
           },
         );

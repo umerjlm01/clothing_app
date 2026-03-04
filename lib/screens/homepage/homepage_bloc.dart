@@ -52,6 +52,9 @@ class HomepageBloc extends Bloc {
   }
 
 
+
+
+
   bool _isDisposed = false;
   @override
   void dispose() {

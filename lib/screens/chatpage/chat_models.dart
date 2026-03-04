@@ -11,6 +11,7 @@ class ChatMessage {
   final double? latitude;
   final String? contactPhone;
   final String? location;
+  final bool isLive;
   final DateTime createdAt;
 
   ChatMessage({
@@ -26,11 +27,23 @@ class ChatMessage {
     this.latitude,
     this.contactPhone,
     this.location,
+    this.isLive = false,
     required this.createdAt,
   });
 
   factory ChatMessage.fromMap(Map<String, dynamic> map) {
-    final payload = map['text'] as Map<String, dynamic>? ?? {};
+    final textField = map['text'];
+    Map<String, dynamic> payload;
+
+    // Handle both string and map
+    if (textField is String) {
+      payload = {'type': 'text', 'text': textField};
+    } else if (textField is Map<String, dynamic>) {
+      payload = textField;
+    } else {
+      payload = {'type': 'text', 'text': ''};
+    }
+
     final type = payload['type'] ?? 'text';
 
     String? content;
@@ -41,6 +54,7 @@ class ChatMessage {
     String? contactPhone;
     double? latitude;
     double? longitude;
+    bool isLive = false;
 
     switch (type) {
       case 'text':
@@ -79,7 +93,16 @@ class ChatMessage {
         }
 
         content = 'Shared Location';
+        filename = payload['filename']?.toString();
+
+        // Determine if this is live location or just a single current location
+        isLive = payload['live'] == true;
         break;
+
+      case 'call':
+        content = payload['text']?.toString();
+        break;
+
 
       case 'contact':
         contactName = payload['name']?.toString();
@@ -102,7 +125,7 @@ class ChatMessage {
       contactPhone: contactPhone,
       latitude: latitude,
       longitude: longitude,
+      isLive: isLive,
       createdAt: DateTime.parse(map['created_at']),
     );
-  }
-}
+  }}

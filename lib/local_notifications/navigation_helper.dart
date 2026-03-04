@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:clothing_app/screens/bottom_nav_bar/bottom_nav_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -68,7 +67,4 @@ Future<void> navigateToChatScreen(String conversationId) async {
     log('navigateToChatScreen error: $e\n$t');
   }
   }
-
-
-
 

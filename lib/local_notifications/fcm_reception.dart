@@ -7,21 +7,30 @@ import 'package:clothing_app/screens/bottom_nav_bar/bottom_nav_bloc.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 
-Future<void> setupFCMListeners() async{
+Future<void> setupFCMListeners() async {
   final localNotifications = LocalNotificationsService();
   await localNotifications.initializeLocalNotifications();
 
+
   void showSnackBar(RemoteMessage message) {
-    SnackBarHelper.showSnackBar(BottomNavBloc.instance!.context, message.data['body'] ?? '');
+    SnackBarHelper.showSnackBar(
+      BottomNavBloc.instance!.context,
+      message.data['body'] ?? '',
+    );
   }
-
-
 
   // Foreground message
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
     log('FCM FOREGROUND DATA: ${message.data}');
 
-    if(BottomNavBloc.instance?.currentIndex == 2){
+    // If it's a call, Zego SDK handles the UI automatically
+    if (message.data['is_call'] == 'true') {
+      log('Foreground call notification received, handled by Zego');
+      return; // Skip local notification
+    }
+
+    // Chat message handling
+    if (BottomNavBloc.instance?.currentIndex == 2) {
       log("Already in chat screen");
       showSnackBar(message);
     }
@@ -30,33 +39,33 @@ Future<void> setupFCMListeners() async{
       id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
       title: message.data['title'] ?? 'New Message',
       body: message.data['body'] ?? '',
-      payload: message.data['conversation_id'], // pass conversationId
+      payload: message.data['conversation_id'],
     );
   });
 
-  // Background message tap
+  // Background / notification tap
   FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-    final conversationId = message.data['conversation_id'];
-    if (conversationId != null) {
-      // Navigate to ChatScreen
-      Future.delayed((const Duration(milliseconds: 500)), () {
-        navigateToChatScreen(conversationId);
-      });
-
-    }
+    _handleMessageTap(message);
   });
 
   // App opened from terminated state
   FirebaseMessaging.instance.getInitialMessage().then((message) {
     if (message != null) {
-      final conversationId = message.data['conversation_id'];
-      if (conversationId != null) {
-        // Navigate to ChatScreen
-        Future.delayed((const Duration(seconds: 2)), () {
-          navigateToChatScreen(conversationId);
-        });
-
-    }}
+      _handleMessageTap(message, isTerminated: true);
+    }
   });
 }
 
+void _handleMessageTap(RemoteMessage message, {bool isTerminated = false}) {
+  // If it's a call, Zego SDK will handle navigation automatically
+  if (message.data['is_call'] == 'true')return;
+
+  final conversationId = message.data['conversation_id'];
+
+  if (conversationId != null && conversationId.isNotEmpty) {
+    Future.delayed(
+      isTerminated ? const Duration(seconds: 2) : const Duration(milliseconds: 500),
+          () => navigateToChatScreen(conversationId),
+    );
+  }
+}

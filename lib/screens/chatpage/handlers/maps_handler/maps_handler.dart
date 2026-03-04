@@ -20,6 +20,8 @@ class MapsHandler {
   GoogleMapController? _googleMapController;
   GoogleMapController? get googleMapController => _googleMapController;
 
+
+
   void setGoogleMapController(GoogleMapController controller) {
     _googleMapController = controller;
   }
@@ -91,12 +93,14 @@ class MapsHandler {
   }
 
   // ---------------- Tracking ----------------
-  Future<void> getCurrentLocation() async {
+  Future<void> getLiveLocation({Duration duration = const Duration(minutes: 15)}) async {
     try {
+      final endTime = DateTime.now().add(duration);
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) return Future.error('Location services are disabled');
 
       LocationPermission permission = await Geolocator.checkPermission();
+
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
@@ -106,13 +110,18 @@ class MapsHandler {
       if (permission == LocationPermission.deniedForever) {
         return Future.error('Location permissions are permanently denied');
       }
+      if (_positionSub != null) return;
 
       _positionSub = Geolocator.getPositionStream(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.high,
           distanceFilter: 10,
         ),
-      ).listen((position) {
+      ).listen((position) async {
+        if(DateTime.now().isAfter(endTime)){
+          stopTracking();
+          return;
+        }
         _positionStream.add(position);
 
         LatLng latLng = LatLng(position.latitude, position.longitude);
@@ -122,6 +131,7 @@ class MapsHandler {
           CameraUpdate.newCameraPosition(
             CameraPosition(target: latLng, zoom: 15),
           ),
+
         );
       });
     } catch (e, t) {
@@ -143,12 +153,63 @@ class MapsHandler {
     );
   }
 
+
+  ///// Current Location /////////////
+
+  Future<LatLng> getCurrentLocation() async {
+    try{
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) return Future.error('Location services are disabled');
+
+      LocationPermission permission = await Geolocator.checkPermission();
+
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          return Future.error('Location permissions are denied');
+        }
+      }
+      if (permission == LocationPermission.deniedForever) {
+        return Future.error('Location permissions are permanently denied');
+      }
+      final position = await Geolocator.getCurrentPosition(locationSettings: LocationSettings(accuracy: LocationAccuracy.high));
+      return LatLng(position.latitude, position.longitude);
+    }
+    catch(e,t){
+      log('getCurrentLocation error: $e\n$t');
+      rethrow;
+    }
+
+  }
+
+  Future<void> showRouteToDestination(LatLng destination) async {
+    try {
+      // 1️⃣ Get current location
+      LatLng currentLocation = await getCurrentLocation();
+
+      // 2️⃣ Draw route
+      await drawRoute(currentLocation, destination);
+
+      // 3️⃣ Optionally animate camera to current location
+      _googleMapController?.animateCamera(
+        CameraUpdate.newLatLng(currentLocation),
+      );
+    } catch (e, t) {
+      log('showRouteToDestination error: $e\n$t');
+    }
+  }
+
+
+
   void stopTracking() {
     _positionSub?.cancel();
     _positionSub = null;
   }
 
-  void clear() {
+
+
+
+  void dispose() {
     _positionStream.close();
     _googleMapController?.dispose();
     _routePoints.clear();

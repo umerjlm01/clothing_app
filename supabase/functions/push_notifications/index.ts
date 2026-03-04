@@ -7,7 +7,10 @@ token?: string; // optional user JWT
 receiver_id: string;
 title: string;
 body: string;
-conversation_id?: string;
+conversation_id?: string; // chat conversation
+call_id?: string;         // optional call ID for calls
+call_type?: 'audio' | 'video'; // optional
+is_call?: 'true' | 'false';     // optional flag
 }
 
 const supabaseUrl = Deno.env.get('MY_SUPABASE_URL')!;
@@ -36,7 +39,7 @@ Deno.serve(async (req) => {
     return new Response('Unauthorized', { status: 401 });
   }
 
-  const { receiver_id, title, body, conversation_id } = payload;
+  const { receiver_id, title, body, conversation_id, call_id, call_type, is_call } = payload;
   if (!receiver_id || !title || !body) {
     return new Response('Missing fields', { status: 400 });
   }
@@ -65,7 +68,22 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ error: 'Failed to authenticate Firebase' }), { status: 500 });
   }
 
-  // 📲 Send DATA-ONLY FCM
+  // 📲 Build DATA-ONLY FCM message
+  const messageData: Record<string, string> = {
+    title,
+    body,
+    conversation_id: conversation_id ?? '',
+    click_action: 'FLUTTER_NOTIFICATION_CLICK',
+  };
+
+  // Add call-specific fields if present
+  if (is_call === 'true' && call_id) {
+    messageData.call_id = call_id;
+    messageData.call_type = call_type ?? 'audio';
+    messageData.is_call = 'true';
+  }
+
+  // Send FCM
   const res = await fetch(
     `https://fcm.googleapis.com/v1/projects/${serviceAccount.project_id}/messages:send`,
     {
@@ -77,12 +95,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         message: {
           token: data.fcm_token,
-          data: {
-            title,
-            body,
-            conversation_id: conversation_id ?? '',
-            click_action: 'FLUTTER_NOTIFICATION_CLICK',
-          },
+          data: messageData,
           android: { priority: 'high' },
         },
       }),
@@ -96,7 +109,6 @@ Deno.serve(async (req) => {
     if (resData.error?.errorCode === 'UNREGISTERED') {
       console.log('FCM token unregistered, removing from DB:', receiver_id);
       await supabase.from('profiles').update({ fcm_token: null }).eq('id', receiver_id);
-
       return new Response(JSON.stringify({ success: true, message: 'Token removed' }), { status: 200 });
     }
 

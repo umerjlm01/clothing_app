@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 
 class BottomNavBar extends StatelessWidget {
-  const BottomNavBar({super.key, required this.index, required this.onTap, this.chatUnreadCount = 0, this.chatUnreadCountStream});
+  const BottomNavBar({super.key, required this.index, required this.onTap, this.chatUnreadCount = 0,this.cartCount = 0, this.cartCountStream ,this.chatUnreadCountStream});
   final int index;
   final Function(int) onTap;
   final int chatUnreadCount;
   final Stream<int>? chatUnreadCountStream;
+  final int? cartCount;
+  final Stream<int>? cartCountStream;
+
 
 
   @override
@@ -21,7 +24,34 @@ class BottomNavBar extends StatelessWidget {
       unselectedItemColor: Colors.grey,
       items:  [
         BottomNavigationBarItem(icon: GestureDetector(onTap: ()=> onTap(0) ,child: Icon(Icons.home)), label: 'Home'),
-        BottomNavigationBarItem(icon: GestureDetector(onTap: ()=> onTap(1) ,child: Icon(Icons.shopping_cart)), label: 'Cart'),
+        BottomNavigationBarItem(icon: GestureDetector(onTap: ()=> onTap(1) ,child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            const Icon(Icons.shopping_cart),
+            if (cartCount! > 0)
+              Positioned(
+                right: -6,
+                top: -3,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: const BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                  ),
+                  constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                  child: Text(
+                    cartCount.toString(),
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: Colors.white,
+
+                  ),
+                    textAlign: TextAlign.center,
+                  )
+
+              )),
+            ]
+        )), label: 'Cart'),
         BottomNavigationBarItem(
           icon: GestureDetector(
             onTap: () => onTap(2),

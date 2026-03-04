@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:clothing_app/reusable_widgets/icon_button.dart';
+import 'package:clothing_app/reusable_widgets/snack_bar_helper.dart';
 import 'package:clothing_app/screens/homepage/homepage_bloc.dart';
 import 'package:clothing_app/screens/homepage/homepage_models.dart';
 import 'package:clothing_app/utils/constant_strings.dart';
@@ -151,6 +152,7 @@ class _HomepageScreenState extends State<HomepageScreen> {
                             ),
                             const Spacer(),
                             AppIconButton(onPressed: () {_bloc.toggleAddToCart(product);
+                              SnackBarHelper.showSnackBar(context, '${product.title} added to cart');
                               }, icon: Icon(Icons.add_shopping_cart))
                           ],
                         ),

@@ -2,6 +2,9 @@ import 'package:clothing_app/screens/chatpage/chat_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:clothing_app/reusable_widgets/icon_button.dart';
 import 'package:clothing_app/utils/constant_variables.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+
+import 'handlers/maps_handler/maps_handler.dart';
 
 class CustomBottomSheet extends StatefulWidget {
   const CustomBottomSheet({super.key, required this.bloc});
@@ -14,6 +17,8 @@ class CustomBottomSheet extends StatefulWidget {
 class _CustomBottomSheetState extends State<CustomBottomSheet> {
 
   ChatScreenBloc  get _bloc => widget.bloc;
+  late final MapsHandler mapsHandler = MapsHandler();
+
 
   @override
   void initState() {
@@ -116,15 +121,25 @@ class _CustomBottomSheetState extends State<CustomBottomSheet> {
               }),
               buildItem(icon: Icons.camera_alt, label: "Camera", iconColor: Colors.pink, onTap: () { _bloc.imageHandler.pickImageFromCamera();
               Navigator.pop(context);}),
-              buildItem(icon: Icons.location_on, label: "Location", iconColor: Colors.green, onTap: () {_bloc.mapsHandler.getCurrentLocation();
-              Navigator.pop(context);}),
+              buildItem(icon: Icons.location_on, label: "Location", iconColor: Colors.green, onTap: () async {
+                await _bloc.mapsHandler.getLiveLocation();
+                final position = await _bloc.mapsHandler.positionStream.first.then((value) => value);
+                _bloc.sendMessage(
+                  null, LatLng(position.latitude, position.longitude), true);
+
+                Navigator.pop(context);
+              }),
               buildItem(icon: Icons.person, label: "Contact", iconColor: Colors.teal, onTap: (){_bloc.contactHandler.pickContact();
               Navigator.pop(context);}),
               buildItem(icon: Icons.insert_drive_file, label: "Document", iconColor: Colors.deepPurple, onTap: (){_bloc.documentHandler.pickDocument();
               Navigator.pop(context);}),
               buildItem(icon: Icons.headset, label: "Audio", iconColor: Colors.orange, onTap: (){_bloc.audioHandler.pickAudio();
               Navigator.pop(context);}),
-              // buildItem(icon: Icons.poll, label: "Poll", iconColor: Colors.amber, onTap: () {}),
+              buildItem(icon: Icons.location_on, label: "Current", iconColor: Colors.amber, onTap: () async{
+                LatLng currentLocation = await _bloc.mapsHandler.getCurrentLocation();
+                _bloc.sendMessage(null, currentLocation, false);
+                Navigator.pop(context);
+              }),
               // buildItem(icon: Icons.event, label: "Event", iconColor: Colors.pinkAccent, onTap: () {}),
             ],
           ),

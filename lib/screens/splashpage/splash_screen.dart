@@ -1,6 +1,9 @@
+
+
 import 'package:clothing_app/screens/bottom_nav_bar/bottom_nav_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../../utils/secure_storage.dart';
 import '../loginpage/login_screen.dart';
 
@@ -20,7 +23,6 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
-
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200),
@@ -36,6 +38,9 @@ class _SplashScreenState extends State<SplashScreen>
     _splashFunc();
   }
 
+
+
+
   Future<void> _splashFunc() async {
     await Future.delayed(const Duration(seconds: 2));
 
@@ -46,14 +51,12 @@ class _SplashScreenState extends State<SplashScreen>
     if (session != null) {
       //refresh session to ensure JWT is valid
       await Supabase.instance.client.auth.refreshSession();
-
       // If refresh failed, go to login
       if (!mounted) return;
       if (Supabase.instance.client.auth.currentSession == null) {
         _navigateToLogin();
         return;
       }
-
       _navigateToHome();
     } else {
       _navigateToLogin();
@@ -75,6 +78,11 @@ class _SplashScreenState extends State<SplashScreen>
           (route) => false,
     );
   }
+
+
+
+
+
 
   @override
   void dispose() {

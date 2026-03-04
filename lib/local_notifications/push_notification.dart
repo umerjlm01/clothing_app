@@ -14,6 +14,9 @@ class PushNotificationService {
     required String title,
     required String body,
     String? conversationId,
+    String? isCall,
+    String? callId,
+    String? callType,
   }) async {
     try {
 
@@ -26,6 +29,9 @@ class PushNotificationService {
           'title': title,
           'body': body,
           'conversation_id': conversationId ?? '',
+          if (isCall != null) 'is_call': isCall,
+          if (callId != null) 'call_id': callId,
+          if (callType != null) 'call_type': callType,
         },
       );
 

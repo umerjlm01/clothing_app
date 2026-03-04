@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-
 import '../../chat_bloc.dart';
 
 class MapsScreen extends StatefulWidget {
-  const MapsScreen({super.key, required this.bloc, this.destination});
+  const MapsScreen({super.key, required this.bloc, this.destination, this.isLive = false});
   final ChatScreenBloc bloc;
   final LatLng? destination;
+  final bool isLive;
+
 
   @override
   State<MapsScreen> createState() => _MapsScreenState();
@@ -15,11 +16,18 @@ class MapsScreen extends StatefulWidget {
 
 class _MapsScreenState extends State<MapsScreen> {
   ChatScreenBloc get _bloc => widget.bloc;
+  BitmapDescriptor customIcon = BitmapDescriptor.defaultMarker;
+  
 
   @override
   void initState() {
     super.initState();
-    _bloc.mapsHandler.getCurrentLocation();
+    getCustomIcon();
+    if(widget.isLive){
+      _bloc.mapsHandler.getLiveLocation();
+    } else{
+      _bloc.mapsHandler.getCurrentLocation();
+    }
 
     // Once we have the destination, fetch route
     if (widget.destination != null) {
@@ -30,16 +38,28 @@ class _MapsScreenState extends State<MapsScreen> {
       });
     }
   }
+  void getCustomIcon() async {
+    BitmapDescriptor.asset(ImageConfiguration(size: Size(35, 35)), 'assets/images/location.png').then((d) => customIcon = d);
+  }
 
   @override
   void dispose() {
-    _bloc.mapsHandler.stopTracking();
+    if(widget.isLive){
+    _bloc.mapsHandler.stopTracking();}
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+      backgroundColor: Colors.white,
+      elevation: 0.5,
+      centerTitle: true,
+      title: Text(widget.isLive ? "Live Location" : "Current Location",
+),
+      iconTheme: const IconThemeData(color: Colors.black87),
+    ),
       body: StreamBuilder<Position>(
           stream: _bloc.mapsHandler.positionStream,
           builder: (context, snapshot) {
@@ -50,6 +70,7 @@ class _MapsScreenState extends State<MapsScreen> {
                 markerId: const MarkerId('current_location'),
                 position: LatLng(pos.latitude, pos.longitude),
                 infoWindow: const InfoWindow(title: 'You'),
+                icon: customIcon,
               ));
             }
 

@@ -13,6 +13,7 @@ class Product {
     required this.imageUrl,
     required this.description,
     required this.createdAt,
+
   });
 
   /// Convert Supabase JSON → Product
@@ -24,6 +25,7 @@ class Product {
       imageUrl: json['image_url'] as String,
       description: json['description'] as String,
       createdAt: DateTime.parse(json['created_at']),
+
     );
   }
 

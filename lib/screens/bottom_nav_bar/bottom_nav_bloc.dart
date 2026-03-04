@@ -1,15 +1,22 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:developer';
 import 'package:clothing_app/bloc/bloc.dart';
 import 'package:clothing_app/utils/constant_strings.dart';
+import 'package:crypto/crypto.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:zego_uikit/zego_uikit.dart';
+import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
+import 'package:zego_uikit_signaling_plugin/zego_uikit_signaling_plugin.dart';
 import '../cartpage/cart_screen.dart';
 import '../chat_list_page/chat_list_screen.dart';
 import '../homepage/homepage_screen.dart';
 import '../profilepage/profile_screen.dart';
+
 
 class BottomNavBloc extends Bloc {
   static BottomNavBloc? instance;
@@ -17,6 +24,7 @@ class BottomNavBloc extends Bloc {
   State<StatefulWidget> state;
   BottomNavBloc(this.context, this.state){
     initializeFCM();
+
     instance = this;
   }
  final BehaviorSubject<int> _currentIndex = BehaviorSubject.seeded(0);
@@ -99,6 +107,47 @@ late List<Widget> screens = [
     }
   }
 
+
+
+
+  String zegoUserID(String originalID) {
+    // SHA256 hash, take first 32 characters
+    final bytes = utf8.encode(originalID);
+    final digest = sha256.convert(bytes);
+    return digest.toString().substring(0, 32);
+  }
+  bool isInitialized = false;
+
+  Future<void> initZego() async {
+    if (isInitialized) return;
+
+    try {
+      final user = Supabase.instance.client.auth.currentUser;
+
+      if (user != null) {
+
+
+
+        // 2️⃣ Initialize Prebuilt Call Invitation Service
+        await ZegoUIKitPrebuiltCallInvitationService().init(
+          appID: int.parse(dotenv.env['MY_APP_ID']!),
+          appSign: dotenv.env['MY_APP_SIGN']!,
+          userID: zegoUserID(user.id),
+          userName: user.email ?? "User",
+          plugins: [ZegoUIKitSignalingPlugin()],
+        );
+
+        // 1️⃣ Configure Zego push
+        log('ZegoUIKit initialized, signalingPlugin null? ${ZegoPluginAdapter().signalingPlugin == null}');
+        isInitialized = true;
+
+      } else {
+        log('initZego skipped: user is null');
+      }
+    } catch (e, t) {
+      log('initZego error: $e\n$t');
+    }
+  }
 
 
 

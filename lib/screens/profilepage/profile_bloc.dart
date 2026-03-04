@@ -5,6 +5,7 @@ import 'package:clothing_app/screens/profilepage/profile_models.dart';
 import 'package:clothing_app/utils/constant_strings.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
 
 import '../../utils/secure_storage.dart';
 
@@ -70,6 +71,7 @@ class ProfileBloc extends Bloc {
           'fcm_token': null,
         }).eq('id', userId);
       }
+      ZegoUIKitPrebuiltCallInvitationService().uninit();
       await supabase.auth.signOut();
       await _storage.delete('accessToken');
       log('Logout successful');

@@ -9,9 +9,11 @@ import '../../bloc/bloc.dart';
 
 class CartBloc extends Bloc {
   final BuildContext context;
+  static CartBloc? instance;
   final State<StatefulWidget> state;
 
   CartBloc(this.context, this.state) {
+    instance = this;
     _initStream();
   }
 
@@ -20,7 +22,14 @@ class CartBloc extends Bloc {
 
   Stream<List<CartItem>> get cartStream => _cartStream.stream;
 
+  Stream<int> get totalQuantityStream =>
+      _cartStream.map((list) => list.fold(0, (sum, item) => sum + item.quantity));
+
+
   StreamSubscription<List<Map<String, dynamic>>>? _cartSubscription;
+  final ValueNotifier<bool> _isLoadingNotifier = ValueNotifier(false);
+  ValueNotifier<bool> get isLoadingNotifier => _isLoadingNotifier;
+
 
   void _initStream() {
     final supabase = Supabase.instance.client;
@@ -30,8 +39,10 @@ class CartBloc extends Bloc {
         .stream(primaryKey: ['id'])
         .eq('user_id', supabase.auth.currentUser!.id)
         .listen((_) {
+
       // Re-fetch on ANY change
       _fetchCart();
+
     });
 
     _fetchCart();
@@ -44,7 +55,7 @@ class CartBloc extends Bloc {
       final response = await supabase
           .from(ConstantStrings.cartTable)
           .select('id, quantity, products(*)')
-          .eq('user_id', supabase.auth.currentUser!.id);
+          .eq('user_id', supabase.auth.currentUser!.id).order('created_at', ascending: false);
 
       final items = (response as List)
           .map((e) => CartItem.fromJson(e))
@@ -58,6 +69,8 @@ class CartBloc extends Bloc {
   }
 
   Future<void> removeFromCart(int cartId) async {
+    try{
+      _isLoadingNotifier.value = true;
     await Supabase.instance.client
         .from(ConstantStrings.cartTable)
         .delete()
@@ -65,23 +78,42 @@ class CartBloc extends Bloc {
     if(!_isDisposed && !_cartStream.isClosed){
     _cartStream.add(_cartStream.value.where((element) => element.id != cartId).toList());}
   }
+  catch(e,t){
+      log('CartBloc removeFromCart catch $e, \n $t');
+  }
+    finally{
+      _isLoadingNotifier.value = false;
+    }
+  }
 
   /// CHANGE QUANTITY (DO NOT touch stream here)
   Future<void> changeQuantity(CartItem item, int quantity) async {
     final supabase = Supabase.instance.client;
-
+    try{
+     _isLoadingNotifier.value = true;
     if (quantity <= 0) {
       await supabase
           .from(ConstantStrings.cartTable)
           .delete()
           .eq('id', item.id);
+
     } else {
       await supabase
           .from(ConstantStrings.cartTable)
           .update({'quantity': quantity})
           .eq('id', item.id);
     }
+    _cartStream.add(_cartStream.value);
+
   }
+  catch(e,t) {
+    log('CartBloc changeQuantity catch $e, \n $t');
+  }
+  finally{
+      _isLoadingNotifier.value = false;
+  }
+  }
+
 
   double get cartTotal =>
       _cartStream.value.fold(0, (sum, i) => sum + i.total);
@@ -92,5 +124,6 @@ class CartBloc extends Bloc {
     _isDisposed = true;
     _cartSubscription?.cancel();
     _cartStream.close();
+    _isLoadingNotifier.dispose();
   }
 }

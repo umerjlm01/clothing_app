@@ -1,15 +1,18 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'package:clothing_app/bloc/bloc.dart';
 import 'package:clothing_app/local_notifications/push_notification.dart';
 import 'package:clothing_app/screens/chatpage/chat_models.dart';
 import 'package:clothing_app/utils/constant_strings.dart';
+import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
+import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
 import 'handlers/audio_handler/audio_handler.dart';
 import 'handlers/contact_handlers/contact_handler.dart';
 import 'handlers/document_handler/document_handler.dart';
@@ -47,10 +50,6 @@ class ChatScreenBloc extends Bloc {
         contactHandler.clear();
     }});
 
-    mapsHandler.positionStream.listen((position) {
-      sendMessage(null, LatLng(position.latitude, position.longitude));
-
-    });
   }
 
   // ---------------- Streams ----------------
@@ -114,7 +113,7 @@ class ChatScreenBloc extends Bloc {
   }
 
   // ---------------- Message Sending ----------------
-  Future<void> sendMessage([File? file, LatLng? location]) async {
+  Future<void> sendMessage([File? file, LatLng? location, bool isLive = false]) async {
     final text = _messageController.text.trim();
 
     final selectedContact = contactHandler.contactNotifier.value;
@@ -137,10 +136,14 @@ class ChatScreenBloc extends Bloc {
         };
       }
       else if (location != null) {
+
         messagePayload = {
           'type': 'location',
           'latitude': location.latitude,
           'longitude': location.longitude,
+          'filename': 'Location',
+          'live': isLive
+
         };
       }
       // 2️⃣ File/Image/Document/Audio
@@ -213,7 +216,11 @@ class ChatScreenBloc extends Bloc {
             : ['pdf', 'doc', 'docx', 'xls', 'xlsx'].contains(ext)
             ? 'Document sent'
             : 'Audio sent';
-      } else {
+      } else if(location != null){
+        lastMessage = 'Location sent';
+      }
+
+      else {
         lastMessage = text.trim();
       }
 
@@ -309,15 +316,95 @@ class ChatScreenBloc extends Bloc {
     }
   }
 
-  void openMaps(ChatMessage msg){
+  void openMaps(ChatMessage msg) {
     final lat = msg.latitude;
     final long = msg.longitude;
-    if (lat != null && long != null) {
-      Navigator.push(context, MaterialPageRoute(builder: (context) => MapsScreen(bloc: this, destination: LatLng(lat, long),)));
+    if (lat == null || long == null) return;
+
+    final destination = LatLng(lat, long);
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MapsScreen(
+          bloc: this,
+          destination: destination,
+          isLive: msg.isLive,
+        ),
+      ),
+    );
+  }
+
+  String zegoUserID(String originalID) {
+    // SHA256 hash, take first 32 characters
+    final bytes = utf8.encode(originalID);
+    final digest = sha256.convert(bytes);
+    return digest.toString().substring(0, 32);
+  }
+
+  Future<void> makeCall(String receiverId, String receiverName, {bool isVideo = true}) async{
+    try{
+
+      final currentUser = supabase.auth.currentUser;
+      if(currentUserId == receiverId) return;
+      if(currentUserId.isEmpty) return;
+      final receiverZegoId = zegoUserID(receiverId);
+      final callID = 'call_${currentUserId}_${receiverId}_${DateTime.now().millisecondsSinceEpoch}';
+      PermissionStatus micStatus = await Permission.microphone.status;
+      if(!micStatus.isGranted){
+        await Permission.microphone.request();
+        log("MicroPhone Permission Granted");
+      }
+      if(isVideo) {
+        PermissionStatus cameraStatus = await Permission.camera.status;
+        if (!cameraStatus.isGranted) {
+        await Permission.camera.request();
+      }}
+      ZegoUIKitPrebuiltCallInvitationService().send(
+        callID: callID,
+        isVideoCall: isVideo,
+        notificationTitle: "Incoming Call",
+        resourceID: 'clothing_app_push',
+        notificationMessage: "Call From ${currentUser!.email}",
+        invitees: [
+          ZegoCallUser(receiverZegoId, receiverName),
+        ],
+        timeoutSeconds: 60,
+
+
+      );
+
+      await supabase.from(ConstantStrings.messagesTable).insert({
+        'conversation_id': conversationId,
+        'sender_id': currentUserId,
+        'created_at': DateTime.now().toIso8601String(),
+        'is_read': false,
+        'text': {
+          'type': 'call',
+          'content': isVideo ? 'Video Call' : 'Audio Call',}
+      });
+
+      await supabase.from(ConstantStrings.conversationsTable).update({
+        'last_message': isVideo ? 'Video Call' : 'Audio Call',
+        'last_message_at': DateTime.now().toIso8601String(),
+      }).eq('id', conversationId);
+
+      await PushNotificationService.instance.trigger(
+        receiverId: receiverId,
+        title: 'Incoming Call',
+        body: 'Call From ${currentUser.email}',
+        conversationId: callID,
+        isCall: 'true',
+        callId: callID,
+        callType: isVideo ? 'video' : 'audio',
+      );
+
+    }
+    catch(e,t){
+      log("ChatScreenBloc makeCall catch $e \n $t");
     }
 
   }
-
 
 
 
