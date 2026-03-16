@@ -107,7 +107,17 @@ class CartBloc extends Bloc {
      }
 
     if(!_isDisposed && !_cartStream.isClosed){
-      _cartStream.add(_cartStream.value);
+      final currentItems = _cartStream.value;
+      if (quantity <= 0) {
+        _cartStream.add(currentItems.where((i) => i.id != item.id).toList());
+      } else {
+        _cartStream.add(currentItems.map((i) {
+          if (i.id == item.id) {
+            return CartItem(id: i.id, quantity: quantity, product: i.product);
+          }
+          return i;
+        }).toList());
+      }
     }
 
   }

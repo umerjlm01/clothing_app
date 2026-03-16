@@ -9,6 +9,7 @@ import '../../reusable_widgets/reusable_button.dart';
 import '../bottom_nav_bar/bottom_nav_screen.dart';
 import '../homepage/widgets/hero_banner/hero_banner_handler.dart';
 import '../registrationpage/registration_screen.dart';
+import '../../reusable_widgets/shimmer_loaders.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -64,7 +65,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                 stream: _bloc.loginStream,
                 builder: (context, snapshot) {
                   if (!snapshot.hasData) {
-                    return const CircularProgressIndicator();
+                    return ShimmerLoaders.circular();
                   }
 
                   if (snapshot.hasError) {

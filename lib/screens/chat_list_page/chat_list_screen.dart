@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../reusable_widgets/app_bar.dart';
 import '../../utils/constant_variables.dart';
 import '../homepage/widgets/hero_banner/hero_banner_handler.dart';
+import '../../reusable_widgets/shimmer_loaders.dart';
 
 
 
@@ -74,7 +75,7 @@ class _ChatListScreenState extends State<ChatListScreen> with SingleTickerProvid
             return Center(child: Text('Error: ${snapshot.error}'));
           }
           if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
+            return ShimmerLoaders.list();
           }
 
           final chatList = snapshot.data!;

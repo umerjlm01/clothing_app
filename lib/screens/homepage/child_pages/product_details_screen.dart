@@ -3,6 +3,7 @@ import 'package:clothing_app/screens/homepage/homepage_bloc.dart';
 import 'package:flutter/material.dart';
 import '../../../reusable_widgets/snack_bar_helper.dart';
 import '../homepage_models.dart';
+import '../../../reusable_widgets/shimmer_loaders.dart';
 
 class ProductDetail extends StatefulWidget {
   final HomepageBloc bloc;
@@ -17,7 +18,6 @@ class ProductDetail extends StatefulWidget {
 class _ProductDetailState extends State<ProductDetail> {
   late Future<Product> _futureProduct;
   HomepageBloc get _bloc => widget.bloc;
-
 
   @override
   void initState() {
@@ -50,19 +50,7 @@ class _ProductDetailState extends State<ProductDetail> {
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     // Only show placeholders for details, not the image
-                    return Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(height: 24, width: 150, color: Colors.grey.shade300),
-                          const SizedBox(height: 8),
-                          Container(height: 20, width: 100, color: Colors.grey.shade300),
-                          const SizedBox(height: 8),
-                          Container(height: 60, color: Colors.grey.shade300),
-                        ],
-                      ),
-                    );
+                    return ShimmerLoaders.productDetails();
                   }
                   if (snapshot.hasError) {
                     return Center(child: Text(snapshot.error.toString()));
@@ -74,11 +62,20 @@ class _ProductDetailState extends State<ProductDetail> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(productDetails.title, style: Theme.of(context).textTheme.headlineSmall),
+                        Text(
+                          productDetails.title,
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
                         const SizedBox(height: 8),
-                        Text('\$${productDetails.price}', style: Theme.of(context).textTheme.titleLarge),
+                        Text(
+                          '\$${productDetails.price}',
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
                         const SizedBox(height: 8),
-                        Text(productDetails.description, style: Theme.of(context).textTheme.titleMedium),
+                        Text(
+                          productDetails.description,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
                         // size/color widgets etc.
                       ],
                     ),
@@ -97,26 +94,20 @@ class _ProductDetailState extends State<ProductDetail> {
           child: FilledButton(
             onPressed: () {
               _bloc.addToCart(product);
-              SnackBarHelper.showSnackBar(context, '${product.title} added to cart');
+              SnackBarHelper.showSnackBar(
+                context,
+                '${product.title} added to cart',
+              );
             },
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Text(product.quantity == 0 ? 'Add to Cart' : 'Added to cart'),
+              child: Text(
+                product.quantity == 0 ? 'Add to Cart' : 'Added to cart',
+              ),
             ),
           ),
         ),
       ),
     );
-
-
-
-
-
-        }
-
-
-
   }
-
-
-
+}

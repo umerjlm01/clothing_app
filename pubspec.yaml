@@ -42,6 +42,8 @@ dependencies:
   crypto: ^3.0.7
   zego_zpns: ^2.8.0
   lottie: ^3.3.2
+  flutter_staggered_animations: ^1.1.1
+  shimmer: ^3.0.0
 
   
 

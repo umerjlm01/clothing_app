@@ -8,6 +8,7 @@ import 'package:clothing_app/utils/constant_variables.dart';
 
 import '../homepage/widgets/hero_banner/hero_banner_handler.dart';
 import '../loginpage/login_screen.dart';
+import '../../reusable_widgets/shimmer_loaders.dart';
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -61,6 +62,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> with SingleTick
               child: StreamBuilder<Registration>(
                 stream: _bloc.registrationStream,
                 builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return ShimmerLoaders.circular();
+                  }
+
                   if (snapshot.hasError) {
                     return Text(snapshot.error.toString());
                   }

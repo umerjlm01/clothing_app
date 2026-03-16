@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../../reusable_widgets/app_bar.dart';
 import '../../utils/constant_strings.dart';
 import '../../utils/constant_variables.dart';
+import '../../reusable_widgets/shimmer_loaders.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -58,7 +59,7 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
             stream: _bloc.cartStream,
             builder: (context, snapshot) {
               if (!snapshot.hasData) {
-                return const Center(child: CircularProgressIndicator());
+                return ShimmerLoaders.list();
               }
 
               if (snapshot.hasError) {

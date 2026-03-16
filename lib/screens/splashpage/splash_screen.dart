@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../utils/secure_storage.dart';
 import '../loginpage/login_screen.dart';
+import '../../reusable_widgets/shimmer_loaders.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -109,8 +110,8 @@ class _SplashScreenState extends State<SplashScreen>
           opacity: _fadeAnimation,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              Icon(
+            children: [
+              const Icon(
                 Icons.shopping_bag_outlined,
                 size: 80,
                 color: Colors.white,
@@ -126,9 +127,9 @@ class _SplashScreenState extends State<SplashScreen>
                 ),
               ),
               SizedBox(height: 12),
-              CircularProgressIndicator(
-                color: Colors.white,
-                strokeWidth: 2,
+              ShimmerLoaders.circular(
+                baseColor: Colors.white54,
+                highlightColor: Colors.white,
               ),
             ],
           ),

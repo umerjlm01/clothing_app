@@ -9,6 +9,7 @@ import 'bottom_sheet.dart';
 import 'chat_bloc.dart';
 import 'chat_models.dart';
 import 'handlers/audio_handler/audio_handler.dart';
+import '../../reusable_widgets/shimmer_loaders.dart';
 
 
 class ChatScreen extends StatefulWidget {
@@ -72,12 +73,8 @@ class _ChatScreenState extends State<ChatScreen> {
                 fit: BoxFit.cover,
                 placeholder: (context, url) => SizedBox(
                   height: 150,
-                  child: Center(
-                    child: SpinKitThreeBounce(
-                      color: Colors.blue,
-                      size: 20,
-                    ),
-                  ),
+                  width: deviceWidth * 0.55,
+                  child: ShimmerLoaders.imagePlaceholder(),
                 ),
                 errorWidget: (context, url, error) => Container(
                   width: deviceWidth * 0.55,
@@ -420,7 +417,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 stream: _bloc.messagesStream,
                 builder: (context, snapshot) {
                   if (!snapshot.hasData) {
-                    return const Center(child: CircularProgressIndicator());
+                    return ShimmerLoaders.chatMessage();
                   }
 
                   final messages = snapshot.data!;

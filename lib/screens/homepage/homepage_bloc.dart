@@ -30,6 +30,7 @@ class HomepageBloc extends Bloc {
   Stream<List<Product>> get productsStream => _productsStream.stream;
 
   StreamSubscription<List<Map<String,dynamic>>>? _productSubscription;
+  StreamSubscription<List<Map<String,dynamic>>>? _cartSubscription;
 
   bool _isDisposed = false;
   bool animationStarted = false;
@@ -42,6 +43,7 @@ class HomepageBloc extends Bloc {
   /// Initialize streams
   void _init() {
     _listenProducts();
+    _listenCart();
     _fetchCart();
   }
 
@@ -61,6 +63,20 @@ class HomepageBloc extends Bloc {
 
     }, onError: (error){
       _productsStream.addError(error);
+    });
+  }
+
+  /// Listen to cart realtime stream
+  void _listenCart() {
+    final stream = client
+        .from(ConstantStrings.cartTable)
+        .stream(primaryKey: ['id'])
+        .eq('user_id', client.auth.currentUser!.id);
+
+    _cartSubscription = stream.listen((_) {
+      _fetchCart();
+    }, onError: (error){
+      log("cart stream error $error");
     });
   }
 
@@ -216,6 +232,7 @@ class HomepageBloc extends Bloc {
     _isDisposed = true;
 
     _productSubscription?.cancel();
+    _cartSubscription?.cancel();
 
     _productsStream.close();
 
