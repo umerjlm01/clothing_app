@@ -6,6 +6,7 @@ import 'package:clothing_app/reusable_widgets/reusable_button.dart';
 import 'package:clothing_app/screens/profilepage/profile_bloc.dart';
 
 import '../../utils/constant_variables.dart';
+import '../homepage/widgets/hero_banner/hero_banner_handler.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -14,18 +15,30 @@ class ProfileScreen extends StatefulWidget {
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProviderStateMixin {
   late ProfileBloc _bloc;
+  late HeroBannerHandler _heroBannerHandler;
+
 
   @override
   void initState() {
     super.initState();
     _bloc = ProfileBloc(context, this);
+    _heroBannerHandler = HeroBannerHandler(vsync: this);
   }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (TickerMode.of(context)) {
+      _heroBannerHandler.resetAnimation();
+      _heroBannerHandler.animationPlay();
+    }}
 
   @override
   void dispose() {
     _bloc.dispose();
+    _heroBannerHandler.animationDispose();
     super.dispose();
   }
 
@@ -53,79 +66,85 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                 return SingleChildScrollView(
                   padding: EdgeInsets.all(deviceWidth / 30),
-                  child: Column(
-                    children: [
-                      Container(
-                        padding: EdgeInsets.all(deviceWidth / 30),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(deviceHeight * 0.02),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Colors.black12,
-                              blurRadius: 8,
-                              offset: Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          children: [
-                            CircleAvatar(
-                              radius: deviceHeight / 15,
-                              backgroundColor: Colors.grey.shade300,
-                              child: Icon(
-                                Icons.person,
-                                size: deviceHeight / 10,
-                                color: Colors.white,
-                              ),
-                            ),
-                            SizedBox(height: deviceHeight / 50),
-                            Text(
-                              profile.name,
-                              style: TextStyle(
-                                fontSize: deviceHeight / 50,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(height: deviceHeight / 80),
-                            Text(
-                              profile.email,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: deviceHeight / 50,
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
-                            if (profile.phone != null) ...[
-                              SizedBox(height: deviceHeight / 80),
-                              Text(
-                                profile.phone!,
-                                style: TextStyle(
-                                  fontSize: deviceHeight / 50,
-                                  color: Colors.grey.shade600,
+                  child: SlideTransition(
+                    position: _heroBannerHandler.titleSlide,
+                    child: FadeTransition(
+                      opacity: _heroBannerHandler.fade,
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: EdgeInsets.all(deviceWidth / 30),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(deviceHeight * 0.02),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 8,
+                                  offset: Offset(0, 4),
                                 ),
-                              ),
-                            ],
-                          ],
-                        ),
+                              ],
+                            ),
+                            child: Column(
+                              children: [
+                                CircleAvatar(
+                                  radius: deviceHeight / 15,
+                                  backgroundColor: Colors.grey.shade300,
+                                  child: Icon(
+                                    Icons.person,
+                                    size: deviceHeight / 10,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                SizedBox(height: deviceHeight / 50),
+                                Text(
+                                  profile.name,
+                                  style: TextStyle(
+                                    fontSize: deviceHeight / 50,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                SizedBox(height: deviceHeight / 80),
+                                Text(
+                                  profile.email,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: deviceHeight / 50,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                                if (profile.phone != null) ...[
+                                  SizedBox(height: deviceHeight / 80),
+                                  Text(
+                                    profile.phone!,
+                                    style: TextStyle(
+                                      fontSize: deviceHeight / 50,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                          SizedBox(height: deviceHeight / 40),
+                          SizedBox(
+                            width: double.infinity,
+                            child: AppButton(
+                              name: 'Logout',
+                              onPressed: () {
+                                _bloc.logout();
+                                Navigator.pushAndRemoveUntil(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const SplashScreen()),
+                                      (route) => false,
+                                );
+                              },
+                            ),
+                          ),
+                        ],
                       ),
-                      SizedBox(height: deviceHeight / 40),
-                      SizedBox(
-                        width: double.infinity,
-                        child: AppButton(
-                          name: 'Logout',
-                          onPressed: () {
-                            _bloc.logout();
-                            Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(builder: (_) => const SplashScreen()),
-                                  (route) => false,
-                            );
-                          },
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 );
               },

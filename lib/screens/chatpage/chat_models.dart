@@ -100,7 +100,7 @@ class ChatMessage {
         break;
 
       case 'call':
-        content = payload['text']?.toString();
+        content = payload['content']?.toString();
         break;
 
 

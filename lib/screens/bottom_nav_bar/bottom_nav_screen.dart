@@ -11,13 +11,15 @@ class BottomNavScreen extends StatefulWidget {
   State<BottomNavScreen> createState() => _BottomNavScreenState();
 }
 
-class _BottomNavScreenState extends State<BottomNavScreen> {
+class _BottomNavScreenState extends State<BottomNavScreen> with SingleTickerProviderStateMixin{
   late BottomNavBloc _bloc;
+
 
 
   @override
   void initState() {
     super.initState();
+
     _bloc = BottomNavBloc(context, this);
     _bloc.initializeFCM();
     initPush();
@@ -48,15 +50,23 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
                 final totalQuantity = cartSnapshot.data ?? 0;
 
                 return Scaffold(
-                  body: IndexedStack(
-                    index: index,
-                    children: _bloc.screens,
+                  body: Stack(
+                    children: List.generate(
+                      _bloc.screens.length,
+                          (i) => TickerMode(
+                        enabled: index == i, // enable animations only on active page
+                        child: Offstage(
+                          offstage: index != i, // hide inactive pages
+                          child: _bloc.screens[i],
+                        ),
+                      ),
+                    ),
                   ),
                   bottomNavigationBar: BottomNavBar(
                     index: index,
                     onTap: (i) => _bloc.updateIndex(i),
                     chatUnreadCount: totalUnread,
-                    cartCount: totalQuantity, // Pass totalQuantity to your BottomNavBar
+                    cartCount: totalQuantity,
                   ),
                 );
               },
@@ -65,6 +75,44 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
         );
       },
     );
-  }
-}
+  }}
+//   Widget build(BuildContext context) {
+//     return StreamBuilder<int>(
+//       stream: _bloc.currentIndexStream,
+//       initialData: 0,
+//       builder: (context, indexSnapshot) {
+//         final index = indexSnapshot.data ?? 0;
+//
+//         return StreamBuilder<int>(
+//           stream: ChatListBloc.instance?.totalUnreadStream,
+//           initialData: 0,
+//           builder: (context, unreadSnapshot) {
+//             final totalUnread = unreadSnapshot.data ?? 0;
+//
+//             return StreamBuilder<int>(
+//               stream: CartBloc.instance?.totalQuantityStream,
+//               initialData: 0,
+//               builder: (context, cartSnapshot) {
+//                 final totalQuantity = cartSnapshot.data ?? 0;
+//
+//                 return Scaffold(
+//                   body: IndexedStack(
+//                     index: index,
+//                     children: _bloc.screens,
+//                   ),
+//                   bottomNavigationBar: BottomNavBar(
+//                     index: index,
+//                     onTap: (i) => _bloc.updateIndex(i),
+//                     chatUnreadCount: totalUnread,
+//                     cartCount: totalQuantity, // Pass totalQuantity to your BottomNavBar
+//                   ),
+//                 );
+//               },
+//             );
+//           },
+//         );
+//       },
+//     );
+//   }
+// }
 

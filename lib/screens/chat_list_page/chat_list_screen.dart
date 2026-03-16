@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../reusable_widgets/app_bar.dart';
 import '../../utils/constant_variables.dart';
+import '../homepage/widgets/hero_banner/hero_banner_handler.dart';
 
 
 
@@ -16,18 +17,32 @@ class ChatListScreen extends StatefulWidget {
   State<ChatListScreen> createState() => _ChatListScreenState();
 }
 
-class _ChatListScreenState extends State<ChatListScreen> {
+class _ChatListScreenState extends State<ChatListScreen> with SingleTickerProviderStateMixin {
   late final ChatListBloc _bloc;
+  late HeroBannerHandler _heroBannerHandler;
+
 
   @override
   void initState() {
     super.initState();
     _bloc = ChatListBloc(context, this);
+    _heroBannerHandler = HeroBannerHandler(vsync: this);
+
+  }
+  @override
+  void didChangeDependencies() {
+    // TODO: implement didChangeDependencies
+    super.didChangeDependencies();
+    if (TickerMode.of(context)) {
+      _heroBannerHandler.resetAnimation();
+      _heroBannerHandler.animationPlay();
+    }
   }
 
   @override
   void dispose() {
     _bloc.dispose();
+    _heroBannerHandler.animationDispose();
     super.dispose();
   }
 
@@ -69,85 +84,91 @@ class _ChatListScreenState extends State<ChatListScreen> {
             return const Center(child: Text('No users found.'));
           }
 
-          return ListView.builder(
+          return  ListView.builder(
             itemCount: chatList.length,
             itemBuilder: (context, index) {
               final chat = chatList[index];
-              return Column(
-                children: [
-                  ListTile(
-                    leading: CircleAvatar(
-                      child: Text(chat.receiverName[0].toUpperCase()),
-                    ),
-                    title: Text(chat.receiverName),
-                    subtitle: Text(
-                      chat.lastMessage ?? 'No chat yet',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                          fontStyle: chat.lastMessage == null
-                              ? FontStyle.italic
-                              : FontStyle.normal),
-                    ),
-                    trailing: SizedBox(
-                      width: deviceWidth / 4,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          if (chat.lastMessageAt != null)
-                          Text(_formatTime(chat.lastMessageAt), style: TextStyle(
-                            fontSize: deviceHeight / 85,
-                            color: chat.unreadCount > 0
-                              ? Color(0xFF25D366) : Colors.grey,
-                            fontWeight: chat.unreadCount > 0
-                              ? FontWeight.bold : FontWeight.normal,
-                          ),),
-                          SizedBox(height: deviceHeight / 100,),
-                          if (chat.unreadCount > 0)
-                            Container(
-                              padding: EdgeInsets.all(deviceWidth / 170),
-                              decoration: BoxDecoration(
-                                color: Color(0xFF25D366),
-                                borderRadius: BorderRadius.circular(deviceWidth / 2),
-                                border: Border.all(color: Colors.white, width: 2),
+              return SlideTransition(
+                position: _heroBannerHandler.titleSlide,
+                child: FadeTransition(
+                  opacity: _heroBannerHandler.fade,
+                  child: Column(
+                    children: [
+                      ListTile(
+                        leading: CircleAvatar(
+                          child: Text(chat.receiverName[0].toUpperCase()),
+                        ),
+                        title: Text(chat.receiverName),
+                        subtitle: Text(
+                          chat.lastMessage ?? 'No chat yet',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              fontStyle: chat.lastMessage == null
+                                  ? FontStyle.italic
+                                  : FontStyle.normal),
+                        ),
+                        trailing: SizedBox(
+                          width: deviceWidth / 4,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              if (chat.lastMessageAt != null)
+                              Text(_formatTime(chat.lastMessageAt), style: TextStyle(
+                                fontSize: deviceHeight / 85,
+                                color: chat.unreadCount > 0
+                                  ? Color(0xFF25D366) : Colors.grey,
+                                fontWeight: chat.unreadCount > 0
+                                  ? FontWeight.bold : FontWeight.normal,
+                              ),),
+                              SizedBox(height: deviceHeight / 100,),
+                              if (chat.unreadCount > 0)
+                                Container(
+                                  padding: EdgeInsets.all(deviceWidth / 170),
+                                  decoration: BoxDecoration(
+                                    color: Color(0xFF25D366),
+                                    borderRadius: BorderRadius.circular(deviceWidth / 2),
+                                    border: Border.all(color: Colors.white, width: 2),
 
-                            ),
-                              child: Text(
-                                chat.unreadCount.toString(),
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: deviceHeight / 80,
                                 ),
+                                  child: Text(
+                                    chat.unreadCount.toString(),
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: deviceHeight / 80,
+                                    ),
+                                  ),
+                                ),
+
+                          ]
+                          )
+                        ),
+
+                        onTap: () async {
+                          // Start conversation if not exists
+                          if (chat.conversationId.isEmpty) {
+                            await _bloc.createConversation(
+                                receiverId: chat.receiverId,
+                                receiverName: chat.receiverName);
+                          }
+
+                          // Navigate to chat page (replace with your chat page)
+
+                           navigator.push (MaterialPageRoute(
+                              builder: (_) => ChatScreen(
+                                conversationId: chat.conversationId,
+                                receiverId: chat.receiverId,
+                                receiverName: chat.receiverName,
+                                currentUserId: _bloc.supabase.auth.currentUser!.id,
                               ),
                             ),
-
-                      ]
-                      )
-                    ),
-
-                    onTap: () async {
-                      // Start conversation if not exists
-                      if (chat.conversationId.isEmpty) {
-                        await _bloc.createConversation(
-                            receiverId: chat.receiverId,
-                            receiverName: chat.receiverName);
-                      }
-
-                      // Navigate to chat page (replace with your chat page)
-
-                       navigator.push (MaterialPageRoute(
-                          builder: (_) => ChatScreen(
-                            conversationId: chat.conversationId,
-                            receiverId: chat.receiverId,
-                            receiverName: chat.receiverName,
-                            currentUserId: _bloc.supabase.auth.currentUser!.id,
-                          ),
-                        ),
-                      );
-                    },
+                          );
+                        },
+                      ),
+                      const Divider(height: 2,),
+                    ],
                   ),
-                  const Divider(height: 2,),
-                ],
+                ),
               );
             },
 

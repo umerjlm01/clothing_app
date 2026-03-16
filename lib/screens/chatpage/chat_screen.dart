@@ -32,6 +32,7 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   late final ChatScreenBloc _bloc;
 
+
   @override
   void initState() {
     super.initState();

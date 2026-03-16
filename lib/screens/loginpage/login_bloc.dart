@@ -1,11 +1,13 @@
 import 'dart:developer';
-
 import 'package:clothing_app/bloc/bloc.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
+import '../../local_notifications/navigation_helper.dart';
 import '../../utils/constant_strings.dart';
+import '../../utils/constant_variables.dart';
 import '../../utils/secure_storage.dart';
 import 'login_models.dart';
 
@@ -35,6 +37,7 @@ class LoginBloc extends Bloc {
       log('Form not valid');
       return false;
     }
+    showLoadingDialog(navigatorKey.currentContext!);
 
     try {
       final AuthResponse response = await supabase.auth.signInWithPassword(
@@ -66,6 +69,9 @@ class LoginBloc extends Bloc {
       debugPrint(e.toString());
       return false;
     }
+    finally{
+      Navigator.pop(navigatorKey.currentContext!);
+    }
   }
 
 
@@ -93,6 +99,29 @@ return null;
 
     }
 
+
+  void showLoadingDialog(BuildContext context) {
+    showCupertinoDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => Center(
+        child: Lottie.asset(
+          'assets/lottie/loading.json',
+          width: deviceWidth / 3,
+          fit: BoxFit.contain,
+          delegates: LottieDelegates(
+            values: [
+              ValueDelegate.color(const [
+                '**',
+              ], value: Theme.of(context).primaryColor),
+            ],
+          ),
+          repeat: true,
+        ),
+      ),
+    );
+  }
+
  bool _isDisposed = false;
   @override
   void dispose() {
@@ -100,6 +129,5 @@ return null;
     _passwordController.dispose();
     _loginStream.close();
     _isDisposed = true;
-    // TODO: implement dispose
   }
   }

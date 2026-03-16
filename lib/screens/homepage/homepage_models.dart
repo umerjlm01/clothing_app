@@ -5,6 +5,7 @@ class Product {
   final String imageUrl;
   final String description;
   final DateTime createdAt;
+  int quantity;
 
   Product({
     required this.id,
@@ -13,6 +14,7 @@ class Product {
     required this.imageUrl,
     required this.description,
     required this.createdAt,
+    this.quantity = 0,
 
   });
 

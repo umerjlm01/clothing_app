@@ -45,24 +45,6 @@ class ProfileBloc extends Bloc {
   }
 
 
-  Future<List<Profile>> fetchUsers() async {
-    try {
-      final currentUserId = supabase.auth.currentUser?.id;
-      if (currentUserId == null) return [];
-
-      final response = await supabase
-          .from(ConstantStrings.profileTable)
-          .select()
-          .neq('id', currentUserId); // exclude the logged in user
-
-      return response.map((e) => Profile.fromJson(e)).toList();
-    } catch (e) {
-      log('Error fetching users: $e');
-      return [];
-    }
-  }
-
-
   Future<void> logout() async {
     try {
       final userId = supabase.auth.currentUser?.id;

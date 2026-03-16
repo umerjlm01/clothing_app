@@ -4,8 +4,13 @@ import 'package:clothing_app/bloc/bloc.dart';
 import 'package:clothing_app/screens/registrationpage/registration_model.dart';
 import 'package:clothing_app/utils/constant_strings.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../../local_notifications/navigation_helper.dart';
+import '../../utils/constant_variables.dart';
 
 
 class RegistrationBloc extends Bloc{
@@ -34,6 +39,7 @@ class RegistrationBloc extends Bloc{
      log('Not validate');
       return false;
     }
+    showLoadingDialog(navigatorKey.currentContext!);
     try{
     final AuthResponse register = await supabase.auth.signUp(
       email: _emailController.text,
@@ -64,7 +70,11 @@ class RegistrationBloc extends Bloc{
       log(e.toString());
       return false;
     }
+    finally{
+      Navigator.pop(navigatorKey.currentContext!);
+    }
     return false;
+
   }
 
   String? validateEmail(String? value) {
@@ -105,6 +115,27 @@ class RegistrationBloc extends Bloc{
 
     return null;
 
+  }
+  void showLoadingDialog(BuildContext context) {
+    showCupertinoDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => Center(
+        child: Lottie.asset(
+          'assets/lottie/loading.json',
+          width: deviceWidth / 3,
+          fit: BoxFit.contain,
+          delegates: LottieDelegates(
+            values: [
+              ValueDelegate.color(const [
+                '**',
+              ], value: Theme.of(context).primaryColor),
+            ],
+          ),
+          repeat: true,
+        ),
+      ),
+    );
   }
   bool _isDisposed = false;
   @override

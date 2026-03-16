@@ -6,6 +6,7 @@ import 'package:clothing_app/screens/registrationpage/registration_model.dart';
 import 'package:clothing_app/utils/constant_strings.dart';
 import 'package:clothing_app/utils/constant_variables.dart';
 
+import '../homepage/widgets/hero_banner/hero_banner_handler.dart';
 import '../loginpage/login_screen.dart';
 
 class RegistrationScreen extends StatefulWidget {
@@ -15,20 +16,26 @@ class RegistrationScreen extends StatefulWidget {
   State<RegistrationScreen> createState() => _RegistrationScreenState();
 }
 
-class _RegistrationScreenState extends State<RegistrationScreen> {
+class _RegistrationScreenState extends State<RegistrationScreen> with SingleTickerProviderStateMixin {
   late RegistrationBloc _bloc;
+  late HeroBannerHandler _heroBannerHandler;
+
 
   @override
   void initState() {
     if (mounted) {
       _bloc = RegistrationBloc(context, this);
+      _heroBannerHandler = HeroBannerHandler(vsync: this);
+      _heroBannerHandler.animationPlay();
       super.initState();
     }
   }
 
+
   @override
   void dispose() {
     _bloc.dispose();
+    _heroBannerHandler.animationDispose();
     super.dispose();
   }
 
@@ -58,87 +65,92 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     return Text(snapshot.error.toString());
                   }
 
-                  return Card(
-                    elevation: 6,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(deviceHeight * 0.02),
-                    ),
-                    child: Padding(
-                      padding: EdgeInsets.all(deviceHeight / 50),
-                      child: Form(
-                        key: _bloc.formKey,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                             Icon(
-                              Icons.person_add_alt_1,
-                              size: deviceHeight / 15,
-                            ),
-                             SizedBox(height: deviceHeight / 50),
-                             Text(
-                              'Create Account',
-                              style: TextStyle(
-                                fontSize: deviceHeight / 40,
-                                fontWeight: FontWeight.bold,
+                  return SlideTransition(
+                    position: _heroBannerHandler.easeInBack,
+                    child: FadeTransition(
+                      opacity: _heroBannerHandler.fade,
+                    child: Card(
+                      elevation: 6,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(deviceHeight * 0.02),
+                      ),
+                      child: Padding(
+                        padding: EdgeInsets.all(deviceHeight / 50),
+                        child: Form(
+                          key: _bloc.formKey,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                               Icon(
+                                Icons.person_add_alt_1,
+                                size: deviceHeight / 15,
                               ),
-                            ),
-                            SizedBox(height: deviceHeight / 50),
-                            AppTextFormField(
-                              label: ConstantStrings.name,
-                              controller: _bloc.nameController,
-                              validator: _bloc.validateName,
-                            ),
-                            SizedBox(height: deviceHeight / 50),
-                            AppTextFormField(
-                              label: ConstantStrings.email,
-                              controller: _bloc.emailController,
-                              validator: _bloc.validateEmail,
-                            ),
-                            SizedBox(height: deviceHeight / 50),
-                            AppTextFormField(
-                              label: ConstantStrings.phone,
-                              controller: _bloc.phoneController,
-                              validator: _bloc.validatePhone,
-                            ),
-                            SizedBox(height: deviceHeight / 50),
-                            AppTextFormField(
-                              label: ConstantStrings.password,
-                              controller: _bloc.passwordController,
-                              isPassword: true,
-                              validator: _bloc.validatePassword,
-                            ),
-                            SizedBox(height: deviceHeight / 40),
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                onPressed: () async {
-                                 final success = _bloc.register();
-                                  final navigator = Navigator.of(context);
-                                  if (await success) {
+                               SizedBox(height: deviceHeight / 50),
+                               Text(
+                                'Create Account',
+                                style: TextStyle(
+                                  fontSize: deviceHeight / 40,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: deviceHeight / 50),
+                              AppTextFormField(
+                                label: ConstantStrings.name,
+                                controller: _bloc.nameController,
+                                validator: _bloc.validateName,
+                              ),
+                              SizedBox(height: deviceHeight / 50),
+                              AppTextFormField(
+                                label: ConstantStrings.email,
+                                controller: _bloc.emailController,
+                                validator: _bloc.validateEmail,
+                              ),
+                              SizedBox(height: deviceHeight / 50),
+                              AppTextFormField(
+                                label: ConstantStrings.phone,
+                                controller: _bloc.phoneController,
+                                validator: _bloc.validatePhone,
+                              ),
+                              SizedBox(height: deviceHeight / 50),
+                              AppTextFormField(
+                                label: ConstantStrings.password,
+                                controller: _bloc.passwordController,
+                                isPassword: true,
+                                validator: _bloc.validatePassword,
+                              ),
+                              SizedBox(height: deviceHeight / 40),
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton(
+                                  onPressed: () async {
+                                   final success = _bloc.register();
+                                    final navigator = Navigator.of(context);
+                                    if (await success) {
 
-                                navigator.pushAndRemoveUntil(
-                                    MaterialPageRoute(builder: (_) => const LoginScreen()), (route) => false);}
-                                  else{
-                                    return;
+                                  navigator.pushAndRemoveUntil(
+                                      MaterialPageRoute(builder: (_) => const LoginScreen()), (route) => false);}
+                                    else{
+                                      return;
 
-                                  }
+                                    }
+                                    },
+                                  child: Text(ConstantStrings.register),
+                                ),
+                              ),
+                              SizedBox(height: deviceHeight / 40),
+                              GestureDetector(
+                                  onTap: () {
+                                    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const LoginScreen()), (route) => false);
                                   },
-                                child: Text(ConstantStrings.register),
-                              ),
-                            ),
-                            SizedBox(height: deviceHeight / 40),
-                            GestureDetector(
-                                onTap: () {
-                                  Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const LoginScreen()), (route) => false);
-                                },
-                                child: Text(
-                                    "Already have an account?"
-                                ))
-                          ],
+                                  child: Text(
+                                      "Already have an account?"
+                                  ))
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  );
+                    ) );
                 },
               ),
             ),
