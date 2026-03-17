@@ -50,13 +50,11 @@ class _HomepageScreenState extends State<HomepageScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      // FIX: CustomScrollView must be OUTSIDE StreamBuilder to keep Banner persistent
       body: AnimationLimiter(
         child: CustomScrollView(
           cacheExtent: deviceHeight * 2,
           physics: const BouncingScrollPhysics(),
           slivers: [
-          // 1. PERSISTENT BANNER
           SliverAppBar(
             // shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(bottom: Radius.circular(30))),
             expandedHeight: deviceHeight * 0.32,
@@ -74,7 +72,6 @@ class _HomepageScreenState extends State<HomepageScreen>
             pinned: true,
           ),
 
-          // 2. DATA-DRIVEN GRID
           StreamBuilder<List<Product>>(
             stream: _bloc.productsStream,
             builder: (context, snapshot) {
@@ -160,7 +157,6 @@ class _HomepageScreenState extends State<HomepageScreen>
             },
           ),
 
-          // Bottom padding to ensure last items aren't cut off by NavBars
           const SliverToBoxAdapter(child: SizedBox(height: 10)),
         ],
       ),

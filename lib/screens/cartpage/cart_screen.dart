@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:clothing_app/screens/cartpage/cart_bloc.dart';
 import 'package:clothing_app/screens/cartpage/cart_models.dart';
+import 'package:clothing_app/screens/cartpage/checkout_success_screen.dart';
 import 'package:clothing_app/screens/homepage/widgets/hero_banner/hero_banner_handler.dart';
 import 'package:flutter/material.dart';
 import '../../reusable_widgets/app_bar.dart';
@@ -74,6 +75,7 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
 
 
               return ListView.builder(
+                padding: EdgeInsets.only(bottom: deviceHeight / 8),
                 itemCount: items.length,
                 itemBuilder: (context, index) {
                   final item = items[index];
@@ -118,6 +120,89 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
               );
             },
           ),
+      bottomNavigationBar: StreamBuilder<List<CartItem>>(
+        stream: _bloc.cartStream,
+        builder: (context, snapshot) {
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const SizedBox.shrink();
+          }
+
+          return Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, -5),
+                ),
+              ],
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+            ),
+            child: SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        "Total",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      Text(
+                        "\$${_bloc.cartTotal.toStringAsFixed(2)}",
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        await _bloc.checkout();
+                        if (mounted) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const CheckoutSuccessScreen(),
+                            ),
+                          );
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 18),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: const Text(
+                        "Checkout",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }

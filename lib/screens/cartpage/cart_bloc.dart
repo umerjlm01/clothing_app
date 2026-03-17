@@ -135,6 +135,25 @@ class CartBloc extends Bloc {
       _cartStream.value.fold(0, (sum, i) => sum + i.total);
 
 
+  Future<void> checkout() async {
+    final supabase = Supabase.instance.client;
+    showLoadingDialog(context);
+    try {
+      await supabase
+          .from(ConstantStrings.cartTable)
+          .delete()
+          .eq('user_id', supabase.auth.currentUser!.id);
+
+      if (!_isDisposed && !_cartStream.isClosed) {
+        _cartStream.add([]);
+      }
+    } catch (e, t) {
+      log('CartBloc checkout catch $e, \n $t');
+    } finally {
+      Navigator.pop(context);
+    }
+  }
+
   void showLoadingDialog(BuildContext context) {
     showCupertinoDialog(
       context: context,

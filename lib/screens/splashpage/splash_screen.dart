@@ -6,7 +6,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../utils/secure_storage.dart';
 import '../loginpage/login_screen.dart';
-import '../../reusable_widgets/shimmer_loaders.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -127,9 +126,8 @@ class _SplashScreenState extends State<SplashScreen>
                 ),
               ),
               SizedBox(height: 12),
-              ShimmerLoaders.circular(
-                baseColor: Colors.white54,
-                highlightColor: Colors.white,
+              CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
               ),
             ],
           ),
