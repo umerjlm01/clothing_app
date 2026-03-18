@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class HeroBannerHandler {
+class AnimationHandler {
   late final TickerProvider vsync;
   late AnimationController _controller;
 
@@ -12,7 +12,7 @@ class HeroBannerHandler {
 
   AnimationController get animationController  => _controller;
 
-  HeroBannerHandler({required this.vsync}) {
+  AnimationHandler({required this.vsync}) {
    _controller = AnimationController(
    duration: const Duration(milliseconds: 1200),
        vsync: vsync);
