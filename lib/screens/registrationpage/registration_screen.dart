@@ -6,7 +6,7 @@ import 'package:clothing_app/screens/registrationpage/registration_model.dart';
 import 'package:clothing_app/utils/constant_strings.dart';
 import 'package:clothing_app/utils/constant_variables.dart';
 
-import '../homepage/widgets/hero_banner/hero_banner_handler.dart';
+import '../../animations/animation_handler.dart';
 import '../loginpage/login_screen.dart';
 import '../../reusable_widgets/shimmer_loaders.dart';
 
@@ -19,15 +19,15 @@ class RegistrationScreen extends StatefulWidget {
 
 class _RegistrationScreenState extends State<RegistrationScreen> with SingleTickerProviderStateMixin {
   late RegistrationBloc _bloc;
-  late HeroBannerHandler _heroBannerHandler;
+  late AnimationHandler _animationHandler;
 
 
   @override
   void initState() {
     if (mounted) {
       _bloc = RegistrationBloc(context, this);
-      _heroBannerHandler = HeroBannerHandler(vsync: this);
-      _heroBannerHandler.animationPlay();
+      _animationHandler = AnimationHandler(vsync: this);
+      _animationHandler.animationPlay();
       super.initState();
     }
   }
@@ -36,7 +36,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> with SingleTick
   @override
   void dispose() {
     _bloc.dispose();
-    _heroBannerHandler.animationDispose();
+    _animationHandler.animationDispose();
     super.dispose();
   }
 
@@ -71,9 +71,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> with SingleTick
                   }
 
                   return SlideTransition(
-                    position: _heroBannerHandler.easeInBack,
+                    position: _animationHandler.easeInBack,
                     child: FadeTransition(
-                      opacity: _heroBannerHandler.fade,
+                      opacity: _animationHandler.fade,
                     child: Card(
                       elevation: 6,
                       shape: RoundedRectangleBorder(
@@ -103,25 +103,35 @@ class _RegistrationScreenState extends State<RegistrationScreen> with SingleTick
                                 label: ConstantStrings.name,
                                 controller: _bloc.nameController,
                                 validator: _bloc.validateName,
+                                onTapVisible: () {},
                               ),
                               SizedBox(height: deviceHeight / 50),
                               AppTextFormField(
                                 label: ConstantStrings.email,
                                 controller: _bloc.emailController,
                                 validator: _bloc.validateEmail,
+                                onTapVisible: () {},
                               ),
                               SizedBox(height: deviceHeight / 50),
                               AppTextFormField(
                                 label: ConstantStrings.phone,
                                 controller: _bloc.phoneController,
                                 validator: _bloc.validatePhone,
+                                onTapVisible: () {},
                               ),
                               SizedBox(height: deviceHeight / 50),
-                              AppTextFormField(
-                                label: ConstantStrings.password,
-                                controller: _bloc.passwordController,
-                                isPassword: true,
-                                validator: _bloc.validatePassword,
+                              StreamBuilder<bool>(
+                                stream: _bloc.obscureTextStream,
+                                builder: (context, snapshot) {
+                                  return AppTextFormField(
+                                    label: ConstantStrings.password,
+                                    controller: _bloc.passwordController,
+                                    isPassword: true,
+                                    validator: _bloc.validatePassword,
+                                    isObscure: snapshot.data ?? true,
+                                    onTapVisible: _bloc.toggleVisiblePassword,
+                                  );
+                                },
                               ),
                               SizedBox(height: deviceHeight / 40),
                               SizedBox(

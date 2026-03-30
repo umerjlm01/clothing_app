@@ -7,7 +7,7 @@ import 'package:clothing_app/utils/constant_variables.dart';
 import '../../reusable_widgets/app_bar.dart';
 import '../../reusable_widgets/reusable_button.dart';
 import '../bottom_nav_bar/bottom_nav_screen.dart';
-import '../homepage/widgets/hero_banner/hero_banner_handler.dart';
+import '../../animations/animation_handler.dart';
 import '../registrationpage/registration_screen.dart';
 import '../../reusable_widgets/shimmer_loaders.dart';
 
@@ -20,15 +20,15 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStateMixin {
   late LoginBloc _bloc;
-  late HeroBannerHandler _heroBannerHandler;
+  late AnimationHandler _animationHandler;
 
 
   @override
   void initState() {
     if (mounted) {
       _bloc = LoginBloc(context, this);
-      _heroBannerHandler = HeroBannerHandler(vsync: this);
-      _heroBannerHandler.animationPlay();
+      _animationHandler = AnimationHandler(vsync: this);
+      _animationHandler.animationPlay();
       super.initState();
     }
   }
@@ -39,7 +39,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   void dispose() {
     super.dispose();
     _bloc.dispose();
-    _heroBannerHandler.animationDispose();
+    _animationHandler.animationDispose();
   }
 
   @override
@@ -72,9 +72,9 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                     return Text(snapshot.error.toString());
                   }
 
-                  return SlideTransition(position: _heroBannerHandler.easeInBack,
+                  return SlideTransition(position: _animationHandler.easeInBack,
                   child: FadeTransition(
-                    opacity: _heroBannerHandler.fade,
+                    opacity: _animationHandler.fade,
                     child: Card(
                       elevation: 6,
                       shape: RoundedRectangleBorder(
@@ -104,14 +104,21 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                 label: ConstantStrings.email,
                                 controller: _bloc.emailController,
                                 validator: _bloc.validateEmail,
+                                onTapVisible: () {},
                               ),
                               SizedBox(height: deviceHeight / 50),
-                              AppTextFormField(
-                                label: ConstantStrings.password,
-                                controller: _bloc.passwordController,
-                                isPassword: true,
-                                validator: _bloc.validatePassword,
-
+                              StreamBuilder<bool>(
+                                stream: _bloc.obscureTextStream,
+                                builder: (context, snapshot) {
+                                  return AppTextFormField(
+                                    label: ConstantStrings.password,
+                                    controller: _bloc.passwordController,
+                                    isPassword: true,
+                                    validator: _bloc.validatePassword,
+                                    isObscure: snapshot.data ?? true,
+                                    onTapVisible: _bloc.toggleVisiblePassword,
+                                  );
+                                },
                               ),
                               SizedBox(height: deviceHeight / 40),
                               SizedBox(

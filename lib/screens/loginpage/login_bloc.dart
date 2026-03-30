@@ -19,6 +19,9 @@ class LoginBloc extends Bloc {
 
   final BehaviorSubject<Login> _loginStream = BehaviorSubject<Login>.seeded(Login(email: '', password: ''));
   Stream<Login> get loginStream => _loginStream.stream;
+  final BehaviorSubject<bool> _obscureTextStream = BehaviorSubject<bool>.seeded(true);
+  Stream<bool> get obscureTextStream => _obscureTextStream.stream;
+  bool get obscureText => _obscureTextStream.value;
 
 
 
@@ -31,6 +34,9 @@ class LoginBloc extends Bloc {
   TextEditingController get emailController => _emailController;
   TextEditingController get passwordController => _passwordController;
   GlobalKey<FormState> get formKey => _formKey;
+
+  void toggleVisiblePassword() => _obscureTextStream.add(!obscureText);
+
 
   Future<bool> login() async {
     if (!_formKey.currentState!.validate()) {
@@ -128,6 +134,7 @@ return null;
     _emailController.dispose();
     _passwordController.dispose();
     _loginStream.close();
+    _obscureTextStream.close();
     _isDisposed = true;
   }
   }

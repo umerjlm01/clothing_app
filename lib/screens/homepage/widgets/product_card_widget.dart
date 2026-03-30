@@ -87,7 +87,7 @@ class _ProductCardWidgetState extends State<ProductCardWidget>
     final product = widget.product;
 
     return Padding(
-      padding: EdgeInsets.all(deviceWidth / 60),
+      padding: EdgeInsets.symmetric(vertical: deviceWidth / 60,horizontal: deviceWidth / 200),
       child: GestureDetector(
         onTapDown: _onTapDown,
         onTapUp: _onTapUp,

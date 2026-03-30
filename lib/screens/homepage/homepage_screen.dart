@@ -3,7 +3,7 @@ import 'package:clothing_app/screens/homepage/widgets/product_card_widget.dart';
 import 'package:clothing_app/screens/homepage/homepage_bloc.dart';
 import 'package:clothing_app/screens/homepage/homepage_models.dart';
 import 'package:clothing_app/screens/homepage/widgets/hero_banner/hero_banner.dart';
-import 'package:clothing_app/screens/homepage/widgets/hero_banner/hero_banner_handler.dart';
+import 'package:clothing_app/animations/animation_handler.dart';
 import 'package:clothing_app/utils/constant_variables.dart';
 import 'package:flutter/material.dart';
 import '../../reusable_widgets/shimmer_loaders.dart';
@@ -19,13 +19,13 @@ class HomepageScreen extends StatefulWidget {
 class _HomepageScreenState extends State<HomepageScreen>
     with SingleTickerProviderStateMixin {
   late HomepageBloc _bloc;
-  late HeroBannerHandler _heroBannerHandler;
+  late AnimationHandler _animationHandler;
 
   @override
   void initState() {
     super.initState(); // Always call super first
     _bloc = HomepageBloc(context, this);
-    _heroBannerHandler = HeroBannerHandler(vsync: this);
+    _animationHandler = AnimationHandler(vsync: this);
   }
 
   @override
@@ -33,8 +33,8 @@ class _HomepageScreenState extends State<HomepageScreen>
     super.didChangeDependencies();
     if (TickerMode.of(context)) {
       // Only trigger animation when page becomes active
-      _heroBannerHandler.resetAnimation();
-      _heroBannerHandler.animationPlay();
+      _animationHandler.resetAnimation();
+      _animationHandler.animationPlay();
     }
   }
 
@@ -42,7 +42,7 @@ class _HomepageScreenState extends State<HomepageScreen>
   @override
   void dispose() {
     _bloc.dispose();
-    _heroBannerHandler.animationDispose();
+    _animationHandler.animationDispose();
     super.dispose();
   }
 
@@ -51,11 +51,16 @@ class _HomepageScreenState extends State<HomepageScreen>
     return Scaffold(
       backgroundColor: Colors.white,
       body: AnimationLimiter(
-        child: CustomScrollView(
-          cacheExtent: deviceHeight * 2,
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-          SliverAppBar(
+        child: RefreshIndicator(
+          onRefresh: () => _bloc.refresh(),
+          child: CustomScrollView(
+            controller: _bloc.scrollController,
+            cacheExtent: deviceHeight * 2,
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
+            slivers: [
+            SliverAppBar(
             // shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(bottom: Radius.circular(30))),
             expandedHeight: deviceHeight * 0.32,
             backgroundColor: Colors.white,
@@ -65,7 +70,7 @@ class _HomepageScreenState extends State<HomepageScreen>
               stretchModes: const [StretchMode.zoomBackground],
               background: ClipRRect(
     borderRadius: const BorderRadius.vertical(bottom: Radius.circular(30)),
-    child: HeroBanner(handler: _heroBannerHandler)),
+    child: HeroBanner(handler: _animationHandler)),
 
             ),
             floating: true,
@@ -88,7 +93,7 @@ class _HomepageScreenState extends State<HomepageScreen>
               if (products.isNotEmpty && !_bloc.animationStarted) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   if (mounted && !_bloc.animationStarted) {
-                    _heroBannerHandler.animationPlay();
+                    _animationHandler.animationPlay();
                     _bloc.animationStarted = true;
                   }
                 });
@@ -109,9 +114,9 @@ class _HomepageScreenState extends State<HomepageScreen>
                       final product = products[index];
                       if (index < 6) {
                         return SlideTransition(
-                          position: _heroBannerHandler.titleSlide,
+                          position: _animationHandler.titleSlide,
                           child: FadeTransition(
-                            opacity: _heroBannerHandler.fade,
+                            opacity: _animationHandler.fade,
                             child: AnimationConfiguration.staggeredGrid(
                               position: index,
                               duration: const Duration(milliseconds: 600),
@@ -160,7 +165,25 @@ class _HomepageScreenState extends State<HomepageScreen>
           const SliverToBoxAdapter(child: SizedBox(height: 10)),
         ],
       ),
-      ),
+    ),
+    ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _bloc.scrollToTop,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        focusElevation: 0,
+        highlightElevation: 0,
+        disabledElevation: 0,
+        hoverElevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(deviceWidth / 10)),
+        child: Container(
+            width: deviceWidth / 2,
+            height: deviceWidth / 2,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(deviceWidth / 10),),
+            child: Icon(Icons.arrow_upward, size: deviceWidth / 10)),
+      )
     );
   }
 }

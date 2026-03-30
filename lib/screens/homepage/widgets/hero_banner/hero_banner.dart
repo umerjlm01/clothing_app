@@ -1,9 +1,9 @@
-import 'package:clothing_app/screens/homepage/widgets/hero_banner/hero_banner_handler.dart';
+import 'package:clothing_app/animations/animation_handler.dart';
 import 'package:flutter/material.dart';
 
 class HeroBanner extends StatefulWidget {
   const HeroBanner({super.key, required this.handler});
-  final HeroBannerHandler handler;
+  final AnimationHandler handler;
 
 
 

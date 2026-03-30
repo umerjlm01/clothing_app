@@ -2,7 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:clothing_app/screens/cartpage/cart_bloc.dart';
 import 'package:clothing_app/screens/cartpage/cart_models.dart';
 import 'package:clothing_app/screens/cartpage/checkout_success_screen.dart';
-import 'package:clothing_app/screens/homepage/widgets/hero_banner/hero_banner_handler.dart';
+import 'package:clothing_app/animations/animation_handler.dart';
 import 'package:flutter/material.dart';
 import '../../reusable_widgets/app_bar.dart';
 import '../../utils/constant_strings.dart';
@@ -18,7 +18,7 @@ class CartScreen extends StatefulWidget {
 
 class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateMixin {
   late CartBloc _bloc;
-  late HeroBannerHandler _heroBannerHandler;
+  late AnimationHandler _animationHandler;
 
 
 
@@ -27,7 +27,7 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
     super.initState();
     if (mounted) {
       _bloc = CartBloc(context, this);
-      _heroBannerHandler = HeroBannerHandler(vsync: this);
+      _animationHandler = AnimationHandler(vsync: this);
     }
   }
   @override
@@ -35,15 +35,15 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
     super.didChangeDependencies();
     if (TickerMode.of(context)) {
       // Only trigger animation when page becomes active
-      _heroBannerHandler.resetAnimation();
-      _heroBannerHandler.animationPlay();
+      _animationHandler.resetAnimation();
+      _animationHandler.animationPlay();
     }
   }
 
   @override
   void dispose() {
     _bloc.dispose();
-    _heroBannerHandler.animationDispose();
+    _animationHandler.animationDispose();
     super.dispose();
   }
 
@@ -80,9 +80,9 @@ class _CartScreenState extends State<CartScreen> with SingleTickerProviderStateM
                 itemBuilder: (context, index) {
                   final item = items[index];
 
-                  return SlideTransition(position: _heroBannerHandler.titleSlide,
+                  return SlideTransition(position: _animationHandler.titleSlide,
                   child: FadeTransition(
-                    opacity: _heroBannerHandler.fade,
+                    opacity: _animationHandler.fade,
                     child: Card(
                       child: ListTile(
                         leading: CachedNetworkImage(

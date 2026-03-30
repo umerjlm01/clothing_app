@@ -7,7 +7,7 @@ import 'package:clothing_app/reusable_widgets/reusable_button.dart';
 import 'package:clothing_app/screens/profilepage/profile_bloc.dart';
 
 import '../../utils/constant_variables.dart';
-import '../homepage/widgets/hero_banner/hero_banner_handler.dart';
+import '../../animations/animation_handler.dart';
 import '../../reusable_widgets/shimmer_loaders.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -20,28 +20,28 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen>
     with SingleTickerProviderStateMixin {
   late ProfileBloc _bloc;
-  late HeroBannerHandler _heroBannerHandler;
+  late AnimationHandler _animationHandler;
 
   @override
   void initState() {
     super.initState();
     _bloc = ProfileBloc(context, this);
-    _heroBannerHandler = HeroBannerHandler(vsync: this);
+    _animationHandler = AnimationHandler(vsync: this);
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (TickerMode.of(context)) {
-      _heroBannerHandler.resetAnimation();
-      _heroBannerHandler.animationPlay();
+      _animationHandler.resetAnimation();
+      _animationHandler.animationPlay();
     }
   }
 
   @override
   void dispose() {
     _bloc.dispose();
-    _heroBannerHandler.animationDispose();
+    _animationHandler.animationDispose();
     super.dispose();
   }
 
@@ -72,9 +72,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                 return SingleChildScrollView(
                   padding: EdgeInsets.all(deviceWidth / 30),
                   child: SlideTransition(
-                    position: _heroBannerHandler.titleSlide,
+                    position: _animationHandler.titleSlide,
                     child: FadeTransition(
-                      opacity: _heroBannerHandler.fade,
+                      opacity: _animationHandler.fade,
                       child: Column(
                         children: [
                           Container(

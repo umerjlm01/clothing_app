@@ -26,6 +26,9 @@ class RegistrationBloc extends Bloc{
 
   final BehaviorSubject<Registration> _registrationStream = BehaviorSubject<Registration>.seeded(Registration(email: '', password: '', name: '', phone: ''));
   Stream<Registration> get registrationStream => _registrationStream.stream;
+  final BehaviorSubject<bool> _obscureTextStream = BehaviorSubject<bool>.seeded(true);
+  Stream<bool> get obscureTextStream => _obscureTextStream.stream;
+  bool get obscureText => _obscureTextStream.value;
   
   TextEditingController get emailController => _emailController;
   TextEditingController get passwordController => _passwordController;
@@ -33,6 +36,8 @@ class RegistrationBloc extends Bloc{
   TextEditingController get phoneController => _phoneController;
   GlobalKey<FormState> get formKey => _formKey;
   final supabase = Supabase.instance.client;
+
+  void toggleVisiblePassword() => _obscureTextStream.add(!obscureText);
   
   Future<bool> register() async {
     if(!_formKey.currentState!.validate()){
@@ -146,7 +151,8 @@ class RegistrationBloc extends Bloc{
     _nameController.dispose();
     _phoneController.dispose();
    _registrationStream.close();
-    // TODO: implement dispose
+    _obscureTextStream.close();
   }
 
-}
+    // TODO: implement dispose
+  }

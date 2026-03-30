@@ -21,33 +21,28 @@ class CartBloc extends Bloc {
     _initStream();
   }
 
-  final BehaviorSubject<List<CartItem>> _cartStream =
-  BehaviorSubject.seeded([]);
+  final BehaviorSubject<List<CartItem>> _cartStream = BehaviorSubject.seeded(
+    [],
+  );
 
   Stream<List<CartItem>> get cartStream => _cartStream.stream;
 
-  Stream<int> get totalQuantityStream =>
-      _cartStream.map((list) => list.fold(0, (sum, item) => sum + item.quantity));
-
+  Stream<int> get totalQuantityStream => _cartStream.map(
+    (list) => list.fold(0, (sum, item) => sum + item.quantity),
+  );
 
   StreamSubscription<List<Map<String, dynamic>>>? _cartSubscription;
   final supabase = Supabase.instance.client;
 
-
-
-
   void _initStream() {
-
     _cartSubscription = supabase
         .from(ConstantStrings.cartTable)
         .stream(primaryKey: ['id'])
         .eq('user_id', supabase.auth.currentUser!.id)
         .listen((_) {
-
-      // Re-fetch on ANY change
-      _fetchCart();
-
-    });
+          // Re-fetch on ANY change
+          _fetchCart();
+        });
 
     _fetchCart();
   }
@@ -59,13 +54,15 @@ class CartBloc extends Bloc {
       final response = await supabase
           .from(ConstantStrings.cartTable)
           .select('id, quantity, products(*)')
-          .eq('user_id', supabase.auth.currentUser!.id).order('created_at', ascending: false);
+          .eq('user_id', supabase.auth.currentUser!.id)
+          .order('created_at', ascending: false);
 
       final items = (response as List)
           .map((e) => CartItem.fromJson(e))
           .toList();
-      if(!_isDisposed && !_cartStream.isClosed){
-      _cartStream.add(items);}
+      if (!_isDisposed && !_cartStream.isClosed) {
+        _cartStream.add(items);
+      }
     } catch (e, st) {
       log('Cart fetch error', error: e, stackTrace: st);
       _cartStream.addError(e);
@@ -73,67 +70,64 @@ class CartBloc extends Bloc {
   }
 
   Future<void> removeFromCart(int cartId) async {
-    try{
-    await Supabase.instance.client
-        .from(ConstantStrings.cartTable)
-        .delete()
-        .eq('id', cartId);
-    if(!_isDisposed && !_cartStream.isClosed){
-    _cartStream.add(_cartStream.value.where((element) => element.id != cartId).toList());}
-  }
-  catch(e,t){
+    try {
+      await Supabase.instance.client
+          .from(ConstantStrings.cartTable)
+          .delete()
+          .eq('id', cartId);
+      if (!_isDisposed && !_cartStream.isClosed) {
+        _cartStream.add(
+          _cartStream.value.where((element) => element.id != cartId).toList(),
+        );
+      }
+    } catch (e, t) {
       log('CartBloc removeFromCart catch $e, \n $t');
-  }
-    finally{
-    }
+    } finally {}
   }
 
   Future<void> changeQuantity(CartItem item, int quantity) async {
     final supabase = Supabase.instance.client;
     showLoadingDialog(navigatorKey.currentContext!);
-    try{
-    if (quantity <= 0) {
-      await supabase
-          .from(ConstantStrings.cartTable)
-          .delete()
-          .eq('id', item.id);
-    }
-
-    else {
-      await supabase
-          .from(ConstantStrings.cartTable)
-          .update({'quantity': quantity})
-          .eq('id', item.id);
-     }
-
-    if(!_isDisposed && !_cartStream.isClosed){
-      final currentItems = _cartStream.value;
+    try {
       if (quantity <= 0) {
-        _cartStream.add(currentItems.where((i) => i.id != item.id).toList());
+        await supabase
+            .from(ConstantStrings.cartTable)
+            .delete()
+            .eq('id', item.id);
       } else {
-        _cartStream.add(currentItems.map((i) {
-          if (i.id == item.id) {
-            return CartItem(id: i.id, quantity: quantity, product: i.product);
-          }
-          return i;
-        }).toList());
+        await supabase
+            .from(ConstantStrings.cartTable)
+            .update({'quantity': quantity})
+            .eq('id', item.id);
       }
-    }
 
-  }
-  catch(e,t) {
-    log('CartBloc changeQuantity catch $e, \n $t');
-  }
-  finally{
+      if (!_isDisposed && !_cartStream.isClosed) {
+        final currentItems = _cartStream.value;
+        if (quantity <= 0) {
+          _cartStream.add(currentItems.where((i) => i.id != item.id).toList());
+        } else {
+          _cartStream.add(
+            currentItems.map((i) {
+              if (i.id == item.id) {
+                return CartItem(
+                  id: i.id,
+                  quantity: quantity,
+                  product: i.product,
+                );
+              }
+              return i;
+            }).toList(),
+          );
+        }
+      }
+    } catch (e, t) {
+      log('CartBloc changeQuantity catch $e, \n $t');
+    } finally {
       Navigator.pop(navigatorKey.currentContext!);
-
+    }
   }
-  }
 
-
-  double get cartTotal =>
-      _cartStream.value.fold(0, (sum, i) => sum + i.total);
-
+  double get cartTotal => _cartStream.value.fold(0, (sum, i) => sum + i.total);
 
   Future<void> checkout() async {
     final supabase = Supabase.instance.client;
@@ -195,7 +189,7 @@ class CartBloc extends Bloc {
                   color: Colors.white30,
                   blurRadius: 20,
                   offset: const Offset(0, 10),
-                )
+                ),
               ],
             ),
             child: Material(
@@ -210,9 +204,10 @@ class CartBloc extends Bloc {
                       color: Colors.red.shade50,
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(Icons.delete_outline_rounded,
-                        color: Colors.red.shade600,
-                        size: 32
+                    child: Icon(
+                      Icons.delete_outline_rounded,
+                      color: Colors.red.shade600,
+                      size: 32,
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -290,10 +285,7 @@ class CartBloc extends Bloc {
       transitionBuilder: (ctx, a1, a2, child) {
         return Transform.scale(
           scale: a1.value,
-          child: FadeTransition(
-            opacity: a1,
-            child: child,
-          ),
+          child: FadeTransition(opacity: a1, child: child),
         );
       },
       transitionDuration: const Duration(milliseconds: 250),
